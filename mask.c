@@ -7,8 +7,8 @@
 #define MASK_VERSION mask16
 #endif
 
-#define likely(x)       __builtin_expect(!!(x), 1)
-#define unlikely(x)     __builtin_expect(!!(x), 0)
+#define likely(x) __builtin_expect(!!(x), 1)
+#define unlikely(x) __builtin_expect(!!(x), 0)
 
 #define CACHE_LINE_SIZE 64
 #define ELEM_PER_CACHE_LINE CACHE_LINE_SIZE / 8
@@ -23,7 +23,8 @@
 // #pragma GCC optimize ("unroll-loops")
 // #pragma GCC optimize ("O3") // turn this on to get to 0.005 of original runtime
 
-static inline long mask0(long oldImage[N][N], long newImage[N][N], int rows, int cols) {
+static inline long mask0(long oldImage[N][N], long newImage[N][N], int rows, int cols)
+{
     return baseMask(oldImage, newImage, rows, cols);
 }
 
@@ -32,24 +33,28 @@ The optimized implementation took:
         Best   :       299124 usec (ratio: 0.198059)
         Average:       307414 usec (ratio: 0.199212)
  */
-static inline long mask1(long oldImage[N][N], long newImage[N][N], int rows, int cols) {
+static inline long mask1(long oldImage[N][N], long newImage[N][N], int rows, int cols)
+{
     int i, j;
     int col, row;
     long check = 0;
 
-    long (*weight)[N] = calloc(N * N, sizeof(long));
+    long(*weight)[N] = calloc(N * N, sizeof(long));
 
     //initialize the new image
     for (i = 0; i < cols; i++)
-        for (j = 0; j < rows; j++) {
+        for (j = 0; j < rows; j++)
+        {
             newImage[j][i] = WEIGHT_CENTRE * oldImage[j][i];
             weight[j][i] = WEIGHT_CENTRE;
         }
 
     // Count the cells to the top left
-    for (j = 1; j < rows; j++) {
+    for (j = 1; j < rows; j++)
+    {
         row = j - 1;
-        for (i = 1; i < cols; i++) {
+        for (i = 1; i < cols; i++)
+        {
             col = i - 1;
             newImage[j][i] += WEIGHT_CORNER * oldImage[row][col];
             weight[j][i] += WEIGHT_CORNER;
@@ -57,18 +62,22 @@ static inline long mask1(long oldImage[N][N], long newImage[N][N], int rows, int
     }
 
     // Count the cells immediately above
-    for (j = 1; j < rows; j++) {
+    for (j = 1; j < rows; j++)
+    {
         row = j - 1;
-        for (i = 0; i < cols; i++) {
+        for (i = 0; i < cols; i++)
+        {
             newImage[j][i] += WEIGHT_SIDE * oldImage[row][i];
             weight[j][i] += WEIGHT_SIDE;
         }
     }
 
     // Count the cells to the top right
-    for (j = 1; j < rows; j++) {
+    for (j = 1; j < rows; j++)
+    {
         row = j - 1;
-        for (i = 0; i < cols - 1; i++) {
+        for (i = 0; i < cols - 1; i++)
+        {
             col = i + 1;
             newImage[j][i] += WEIGHT_CORNER * oldImage[row][col];
             weight[j][i] += WEIGHT_CORNER;
@@ -76,8 +85,10 @@ static inline long mask1(long oldImage[N][N], long newImage[N][N], int rows, int
     }
 
     // Count the cells to the immediate left
-    for (j = 0; j < rows; j++) {
-        for (i = 1; i < cols; i++) {
+    for (j = 0; j < rows; j++)
+    {
+        for (i = 1; i < cols; i++)
+        {
             col = i - 1;
             newImage[j][i] += WEIGHT_SIDE * oldImage[j][col];
             weight[j][i] += WEIGHT_SIDE;
@@ -85,8 +96,10 @@ static inline long mask1(long oldImage[N][N], long newImage[N][N], int rows, int
     }
 
     // Count the cells to the immediate right
-    for (j = 0; j < rows; j++) {
-        for (i = 0; i < cols - 1; i++) {
+    for (j = 0; j < rows; j++)
+    {
+        for (i = 0; i < cols - 1; i++)
+        {
             col = i + 1;
             newImage[j][i] += WEIGHT_SIDE * oldImage[j][col];
             weight[j][i] += WEIGHT_SIDE;
@@ -94,9 +107,11 @@ static inline long mask1(long oldImage[N][N], long newImage[N][N], int rows, int
     }
 
     // Count the cells to the bottom left
-    for (j = 0; j < rows - 1; j++) {
+    for (j = 0; j < rows - 1; j++)
+    {
         row = j + 1;
-        for (i = 1; i < cols; i++) {
+        for (i = 1; i < cols; i++)
+        {
             col = i - 1;
             newImage[j][i] += WEIGHT_CORNER * oldImage[row][col];
             weight[j][i] += WEIGHT_CORNER;
@@ -104,18 +119,22 @@ static inline long mask1(long oldImage[N][N], long newImage[N][N], int rows, int
     }
 
     // Count the cells immediately below
-    for (j = 0; j < rows - 1; j++) {
+    for (j = 0; j < rows - 1; j++)
+    {
         row = j + 1;
-        for (i = 0; i < cols; i++) {
+        for (i = 0; i < cols; i++)
+        {
             newImage[j][i] += WEIGHT_SIDE * oldImage[row][i];
             weight[j][i] += WEIGHT_SIDE;
         }
     }
 
     // Count the cells to the bottom right
-    for (j = 0; j < rows - 1; j++) {
+    for (j = 0; j < rows - 1; j++)
+    {
         row = j + 1;
-        for (i = 0; i < cols - 1; i++) {
+        for (i = 0; i < cols - 1; i++)
+        {
             col = i + 1;
             newImage[j][i] += WEIGHT_CORNER * oldImage[row][col];
             weight[j][i] += WEIGHT_CORNER;
@@ -123,8 +142,10 @@ static inline long mask1(long oldImage[N][N], long newImage[N][N], int rows, int
     }
 
     // Produce the final result
-    for (j = 0; j < rows; j++) {
-        for (i = 0; i < cols; i++) {
+    for (j = 0; j < rows; j++)
+    {
+        for (i = 0; i < cols; i++)
+        {
             newImage[j][i] = newImage[j][i] / weight[j][i];
             check += newImage[j][i];
         }
@@ -139,18 +160,21 @@ The optimized implementation took:
         Best   :       312546 usec (ratio: 0.207447)
         Average:       350922 usec (ratio: 0.225776)
  */
-static inline long mask2(long oldImage[N][N], long newImage[N][N], int rows, int cols) {
+static inline long mask2(long oldImage[N][N], long newImage[N][N], int rows, int cols)
+{
     register int i, j;
     register int top, bot, left, right; // TODO maybe not necessary
     register long check = 0;
 
-    long (*weight)[N] = calloc(N * N, sizeof(long));
+    long(*weight)[N] = calloc(N * N, sizeof(long));
 
     //initialize the new image
-    for (j = 0; j < rows; j++) {
+    for (j = 0; j < rows; j++)
+    {
         top = j - 1; // TODO some ternary to make bound checking easier
         bot = j + 1;
-        for (i = 0; i < cols; i++) {
+        for (i = 0; i < cols; i++)
+        {
             left = i - 1;
             right = i + 1;
 
@@ -164,49 +188,57 @@ static inline long mask2(long oldImage[N][N], long newImage[N][N], int rows, int
             // TODO do borders first, then middle? nah bad cache
             // TODO define cols - 1 and rows - 1?
             // Count the cells to the top left
-            if (j > 0 && i > 0) {
+            if (j > 0 && i > 0)
+            {
                 newImage[j][i] += WEIGHT_CORNER * oldImage[top][left];
                 weight[j][i] += WEIGHT_CORNER;
             }
 
             // Count the cells immediately above
-            if (j > 0) {
+            if (j > 0)
+            {
                 newImage[j][i] += WEIGHT_SIDE * oldImage[top][i];
                 weight[j][i] += WEIGHT_SIDE;
             }
 
             // Count the cells to the top right
-            if (j > 0 && i < cols - 1) {
+            if (j > 0 && i < cols - 1)
+            {
                 newImage[j][i] += WEIGHT_CORNER * oldImage[top][right];
                 weight[j][i] += WEIGHT_CORNER;
             }
 
             // Count the cells to the immediate left
-            if (i > 0) {
+            if (i > 0)
+            {
                 newImage[j][i] += WEIGHT_SIDE * oldImage[j][left];
                 weight[j][i] += WEIGHT_SIDE;
             }
 
             // Count the cells to the immediate right
-            if (i < cols - 1) {
+            if (i < cols - 1)
+            {
                 newImage[j][i] += WEIGHT_SIDE * oldImage[j][right];
                 weight[j][i] += WEIGHT_SIDE;
             }
 
             // Count the cells to the bottom left
-            if (j < rows - 1 && i > 0) {
+            if (j < rows - 1 && i > 0)
+            {
                 newImage[j][i] += WEIGHT_CORNER * oldImage[bot][left];
                 weight[j][i] += WEIGHT_CORNER;
             }
 
             // Count the cells immediately below
-            if (j < rows - 1) {
+            if (j < rows - 1)
+            {
                 newImage[j][i] += WEIGHT_SIDE * oldImage[bot][i];
                 weight[j][i] += WEIGHT_SIDE;
             }
 
             // Count the cells to the bottom right
-            if (j < rows - 1 && i < cols - 1) {
+            if (j < rows - 1 && i < cols - 1)
+            {
                 newImage[j][i] += WEIGHT_CORNER * oldImage[bot][right];
                 weight[j][i] += WEIGHT_CORNER;
             }
@@ -214,7 +246,8 @@ static inline long mask2(long oldImage[N][N], long newImage[N][N], int rows, int
     }
     // Produce the final result
     for (i = 0; i < cols; i++)
-        for (j = 0; j < rows; j++) {
+        for (j = 0; j < rows; j++)
+        {
             newImage[j][i] = newImage[j][i] / weight[j][i];
             check += newImage[j][i];
         }
@@ -228,18 +261,21 @@ The optimized implementation took:
         Best   :       318740 usec (ratio: 0.212283)
         Average:       321732 usec (ratio: 0.211305)
  */
-static inline long mask3(long oldImage[N][N], long newImage[N][N], int rows, int cols) {
+static inline long mask3(long oldImage[N][N], long newImage[N][N], int rows, int cols)
+{
     register int i, j;
     register int top, bot, left, right; // TODO maybe not necessary
     register long check = 0;
 
-    long (*weight)[N] = calloc(N * N, sizeof(long));
+    long(*weight)[N] = calloc(N * N, sizeof(long));
 
     //initialize the new image
-    for (j = 0; j < rows; j++) {
+    for (j = 0; j < rows; j++)
+    {
         top = j - 1; // TODO some ternary to make bound checking easier
         bot = j + 1;
-        for (i = 0; i < cols; i++) {
+        for (i = 0; i < cols; i++)
+        {
             left = i - 1;
             right = i + 1;
 
@@ -252,49 +288,57 @@ static inline long mask3(long oldImage[N][N], long newImage[N][N], int rows, int
             // TODO do borders first, then middle? nah bad cache
             // TODO define cols - 1 and rows - 1?
             // Count the cells to the top left
-            if (likely(j > 0 && i > 0)) {
+            if (likely(j > 0 && i > 0))
+            {
                 newImage[j][i] += WEIGHT_CORNER * oldImage[top][left];
                 weight[j][i] += WEIGHT_CORNER;
             }
 
             // Count the cells immediately above
-            if (likely(j > 0)) {
+            if (likely(j > 0))
+            {
                 newImage[j][i] += WEIGHT_SIDE * oldImage[top][i];
                 weight[j][i] += WEIGHT_SIDE;
             }
 
             // Count the cells to the top right
-            if (likely(j > 0 && i < cols - 1)) {
+            if (likely(j > 0 && i < cols - 1))
+            {
                 newImage[j][i] += WEIGHT_CORNER * oldImage[top][right];
                 weight[j][i] += WEIGHT_CORNER;
             }
 
             // Count the cells to the immediate left
-            if (likely(i > 0)) {
+            if (likely(i > 0))
+            {
                 newImage[j][i] += WEIGHT_SIDE * oldImage[j][left];
                 weight[j][i] += WEIGHT_SIDE;
             }
 
             // Count the cells to the immediate right
-            if (likely(i < cols - 1)) {
+            if (likely(i < cols - 1))
+            {
                 newImage[j][i] += WEIGHT_SIDE * oldImage[j][right];
                 weight[j][i] += WEIGHT_SIDE;
             }
 
             // Count the cells to the bottom left
-            if (likely(j < rows - 1 && i > 0)) {
+            if (likely(j < rows - 1 && i > 0))
+            {
                 newImage[j][i] += WEIGHT_CORNER * oldImage[bot][left];
                 weight[j][i] += WEIGHT_CORNER;
             }
 
             // Count the cells immediately below
-            if (likely(j < rows - 1)) {
+            if (likely(j < rows - 1))
+            {
                 newImage[j][i] += WEIGHT_SIDE * oldImage[bot][i];
                 weight[j][i] += WEIGHT_SIDE;
             }
 
             // Count the cells to the bottom right
-            if (likely(j < rows - 1 && i < cols - 1)) {
+            if (likely(j < rows - 1 && i < cols - 1))
+            {
                 newImage[j][i] += WEIGHT_CORNER * oldImage[bot][right];
                 weight[j][i] += WEIGHT_CORNER;
             }
@@ -302,7 +346,8 @@ static inline long mask3(long oldImage[N][N], long newImage[N][N], int rows, int
     }
     // Produce the final result
     for (i = 0; i < cols; i++)
-        for (j = 0; j < rows; j++) {
+        for (j = 0; j < rows; j++)
+        {
             newImage[j][i] = newImage[j][i] / weight[j][i];
             check += newImage[j][i];
         }
@@ -317,17 +362,20 @@ The optimized implementation took:
         Best   :        78392 usec (ratio: 0.052811)
         Average:        79143 usec (ratio: 0.052280)
  */
-static inline long mask4(long oldImage[N][N], long newImage[N][N], int rows, int cols) {
+static inline long mask4(long oldImage[N][N], long newImage[N][N], int rows, int cols)
+{
     // TODO we got too many register variables meow
     register int i, j;
     register int top, bot, left, right; // TODO maybe not necessary
     register long check = 0;
 
     //initialize the new image
-    for (j = 0; j < rows; j++) {
+    for (j = 0; j < rows; j++)
+    {
         top = j - 1; // TODO some ternary to make bound checking easier
         bot = j + 1;
-        for (i = 0; i < cols; i++) {
+        for (i = 0; i < cols; i++)
+        {
             left = i - 1;
             right = i + 1;
 
@@ -340,49 +388,57 @@ static inline long mask4(long oldImage[N][N], long newImage[N][N], int rows, int
             // TODO do borders first, then middle? nah bad cache
             // TODO define cols - 1 and rows - 1?
             // Count the cells to the top left
-            if (likely(j > 0 && i > 0)) {
+            if (likely(j > 0 && i > 0))
+            {
                 pixel += WEIGHT_CORNER * oldImage[top][left];
                 weight += WEIGHT_CORNER;
             }
 
-            if (likely(j > 0)) {
+            if (likely(j > 0))
+            {
                 // Count the cells immediately above
                 pixel += WEIGHT_SIDE * oldImage[top][i];
                 weight += WEIGHT_SIDE;
             }
 
             // Count the cells to the top right
-            if (likely(j > 0 && i < cols - 1)) {
+            if (likely(j > 0 && i < cols - 1))
+            {
                 pixel += WEIGHT_CORNER * oldImage[top][right];
                 weight += WEIGHT_CORNER;
             }
 
             // Count the cells to the immediate left
-            if (likely(i > 0)) {
+            if (likely(i > 0))
+            {
                 pixel += WEIGHT_SIDE * oldImage[j][left];
                 weight += WEIGHT_SIDE;
             }
 
             // Count the cells to the immediate right
-            if (likely(i < cols - 1)) {
+            if (likely(i < cols - 1))
+            {
                 pixel += WEIGHT_SIDE * oldImage[j][right];
                 weight += WEIGHT_SIDE;
             }
 
             // Count the cells to the bottom left
-            if (likely(j < rows - 1 && i > 0)) {
+            if (likely(j < rows - 1 && i > 0))
+            {
                 pixel += WEIGHT_CORNER * oldImage[bot][left];
                 weight += WEIGHT_CORNER;
             }
 
             // Count the cells immediately below
-            if (likely(j < rows - 1)) {
+            if (likely(j < rows - 1))
+            {
                 pixel += WEIGHT_SIDE * oldImage[bot][i];
                 weight += WEIGHT_SIDE;
             }
 
             // Count the cells to the bottom right
-            if (likely(j < rows - 1 && i < cols - 1)) {
+            if (likely(j < rows - 1 && i < cols - 1))
+            {
                 pixel += WEIGHT_CORNER * oldImage[bot][right];
                 weight += WEIGHT_CORNER;
             }
@@ -406,17 +462,20 @@ The optimized implementation took:
         Best   :        69592 usec (ratio: 0.046778)
         Average:        70723 usec (ratio: 0.046515)
  */
-static inline long mask5(long oldImage[N][N], long newImage[N][N], int rows, int cols) {
+static inline long mask5(long oldImage[N][N], long newImage[N][N], int rows, int cols)
+{
     // TODO we got too many register variables meow
     register int i, j;
     register int top, bot, left, right; // TODO maybe not necessary
     register long check = 0;
 
     //initialize the new image
-    for (j = 0; j < rows; j++) {
+    for (j = 0; j < rows; j++)
+    {
         top = j - 1; // TODO some ternary to make bound checking easier
         bot = j + 1;
-        for (i = 0; i < cols; i++) {
+        for (i = 0; i < cols; i++)
+        {
             left = i - 1;
             right = i + 1;
 
@@ -430,9 +489,11 @@ static inline long mask5(long oldImage[N][N], long newImage[N][N], int rows, int
             // TODO define cols - 1 and rows - 1?
 
             // top
-            if (likely(j > 0)) {
+            if (likely(j > 0))
+            {
                 // Count the cells to the top left
-                if (likely(i > 0)) {
+                if (likely(i > 0))
+                {
                     pixel += WEIGHT_CORNER * oldImage[top][left];
                     weight += WEIGHT_CORNER;
                 }
@@ -442,28 +503,32 @@ static inline long mask5(long oldImage[N][N], long newImage[N][N], int rows, int
                 weight += WEIGHT_SIDE;
 
                 // Count the cells to the top right
-                if (likely(i < cols - 1)) {
+                if (likely(i < cols - 1))
+                {
                     pixel += WEIGHT_CORNER * oldImage[top][right];
                     weight += WEIGHT_CORNER;
                 }
             }
 
             // Count the cells to the immediate left
-            if (likely(i > 0)) {
+            if (likely(i > 0))
+            {
                 pixel += WEIGHT_SIDE * oldImage[j][left];
                 weight += WEIGHT_SIDE;
             }
 
             // Count the cells to the immediate right
-            if (likely(i < cols - 1)) {
+            if (likely(i < cols - 1))
+            {
                 pixel += WEIGHT_SIDE * oldImage[j][right];
                 weight += WEIGHT_SIDE;
             }
 
-
-            if (likely(j < rows - 1)) {
+            if (likely(j < rows - 1))
+            {
                 // Count the cells to the bottom left
-                if (likely(i > 0)) {
+                if (likely(i > 0))
+                {
                     pixel += WEIGHT_CORNER * oldImage[bot][left];
                     weight += WEIGHT_CORNER;
                 }
@@ -473,7 +538,8 @@ static inline long mask5(long oldImage[N][N], long newImage[N][N], int rows, int
                 weight += WEIGHT_SIDE;
 
                 // Count the cells to the bottom right
-                if (likely(i < cols - 1)) {
+                if (likely(i < cols - 1))
+                {
                     pixel += WEIGHT_CORNER * oldImage[bot][right];
                     weight += WEIGHT_CORNER;
                 }
@@ -489,7 +555,6 @@ static inline long mask5(long oldImage[N][N], long newImage[N][N], int rows, int
     return check;
 }
 
-
 /**One loop with branch suggestions
  * with temp variable to store each pixel and then write once
  * with no weight array because it's a waste of time
@@ -502,17 +567,20 @@ The optimized implementation took:
         Best   :        74632 usec (ratio: 0.049999)
         Average:        76175 usec (ratio: 0.050180)
  */
-static inline long mask6(long oldImage[N][N], long newImage[N][N], int rows, int cols) {
+static inline long mask6(long oldImage[N][N], long newImage[N][N], int rows, int cols)
+{
     // TODO we got too many register variables meow
     register int i, j;
     register int top, bot, left, right; // TODO maybe not necessary
     register long check = 0;
 
     //initialize the new image
-    for (j = 0; j < rows; j++) {
+    for (j = 0; j < rows; j++)
+    {
         top = j - 1; // TODO some ternary to make bound checking easier
         bot = j + 1;
-        for (i = 0; i < cols; i++) {
+        for (i = 0; i < cols; i++)
+        {
             if (likely(i < cols - 1))
                 __builtin_prefetch(&oldImage[j][i + PREFETCH_OFFSET], 0, PREFETCH_LOCALITY);
 
@@ -529,9 +597,11 @@ static inline long mask6(long oldImage[N][N], long newImage[N][N], int rows, int
             // TODO define cols - 1 and rows - 1?
 
             // top
-            if (likely(j > 0)) {
+            if (likely(j > 0))
+            {
                 // Count the cells to the top left
-                if (likely(i > 0)) {
+                if (likely(i > 0))
+                {
                     pixel += WEIGHT_CORNER * oldImage[top][left];
                     weight += WEIGHT_CORNER;
                 }
@@ -541,28 +611,32 @@ static inline long mask6(long oldImage[N][N], long newImage[N][N], int rows, int
                 weight += WEIGHT_SIDE;
 
                 // Count the cells to the top right
-                if (likely(i < cols - 1)) {
+                if (likely(i < cols - 1))
+                {
                     pixel += WEIGHT_CORNER * oldImage[top][right];
                     weight += WEIGHT_CORNER;
                 }
             }
 
             // Count the cells to the immediate left
-            if (likely(i > 0)) {
+            if (likely(i > 0))
+            {
                 pixel += WEIGHT_SIDE * oldImage[j][left];
                 weight += WEIGHT_SIDE;
             }
 
             // Count the cells to the immediate right
-            if (likely(i < cols - 1)) {
+            if (likely(i < cols - 1))
+            {
                 pixel += WEIGHT_SIDE * oldImage[j][right];
                 weight += WEIGHT_SIDE;
             }
 
-
-            if (likely(j < rows - 1)) {
+            if (likely(j < rows - 1))
+            {
                 // Count the cells to the bottom left
-                if (likely(i > 0)) {
+                if (likely(i > 0))
+                {
                     pixel += WEIGHT_CORNER * oldImage[bot][left];
                     weight += WEIGHT_CORNER;
                 }
@@ -572,7 +646,8 @@ static inline long mask6(long oldImage[N][N], long newImage[N][N], int rows, int
                 weight += WEIGHT_SIDE;
 
                 // Count the cells to the bottom right
-                if (likely(i < cols - 1)) {
+                if (likely(i < cols - 1))
+                {
                     pixel += WEIGHT_CORNER * oldImage[bot][right];
                     weight += WEIGHT_CORNER;
                 }
@@ -598,7 +673,8 @@ The optimized implementation took:
         Best   :        67111 usec (ratio: 0.044862)
         Average:        67702 usec (ratio: 0.044516)
  */
-static inline long mask7(long oldImage[N][N], long newImage[N][N], int rows, int cols) {
+static inline long mask7(long oldImage[N][N], long newImage[N][N], int rows, int cols)
+{
     register int i, j;
     register int top, bot, left, right; // TODO maybe not necessary
     register long check = 0;
@@ -606,7 +682,8 @@ static inline long mask7(long oldImage[N][N], long newImage[N][N], int rows, int
     // top row
     bot = 1;
     j = 0;
-    for (i = 0; i < cols; i++) {
+    for (i = 0; i < cols; i++)
+    {
         left = i - 1;
         right = i + 1;
 
@@ -615,19 +692,22 @@ static inline long mask7(long oldImage[N][N], long newImage[N][N], int rows, int
         register long weight = WEIGHT_CENTRE;
 
         // Count the cells to the immediate left
-        if (likely(i > 0)) {
+        if (likely(i > 0))
+        {
             pixel += WEIGHT_SIDE * oldImage[j][left];
             weight += WEIGHT_SIDE;
         }
 
         // Count the cells to the immediate right
-        if (likely(i < cols - 1)) {
+        if (likely(i < cols - 1))
+        {
             pixel += WEIGHT_SIDE * oldImage[j][right];
             weight += WEIGHT_SIDE;
         }
 
         // Count the cells to the bottom left
-        if (likely(i > 0)) {
+        if (likely(i > 0))
+        {
             pixel += WEIGHT_CORNER * oldImage[bot][left];
             weight += WEIGHT_CORNER;
         }
@@ -637,7 +717,8 @@ static inline long mask7(long oldImage[N][N], long newImage[N][N], int rows, int
         weight += WEIGHT_SIDE;
 
         // Count the cells to the bottom right
-        if (likely(i < cols - 1)) {
+        if (likely(i < cols - 1))
+        {
             pixel += WEIGHT_CORNER * oldImage[bot][right];
             weight += WEIGHT_CORNER;
         }
@@ -649,10 +730,12 @@ static inline long mask7(long oldImage[N][N], long newImage[N][N], int rows, int
     }
 
     // middle
-    for (j = 1; j < rows - 1; j++) {
+    for (j = 1; j < rows - 1; j++)
+    {
         top = j - 1; // TODO some ternary to make bound checking easier
         bot = j + 1;
-        for (i = 0; i < cols; i++) {
+        for (i = 0; i < cols; i++)
+        {
             left = i - 1;
             right = i + 1;
 
@@ -661,7 +744,8 @@ static inline long mask7(long oldImage[N][N], long newImage[N][N], int rows, int
             register long weight = WEIGHT_CENTRE;
 
             // Count the cells to the top left
-            if (likely(i > 0)) {
+            if (likely(i > 0))
+            {
                 pixel += WEIGHT_CORNER * oldImage[top][left];
                 weight += WEIGHT_CORNER;
             }
@@ -671,25 +755,29 @@ static inline long mask7(long oldImage[N][N], long newImage[N][N], int rows, int
             weight += WEIGHT_SIDE;
 
             // Count the cells to the top right
-            if (likely(i < cols - 1)) {
+            if (likely(i < cols - 1))
+            {
                 pixel += WEIGHT_CORNER * oldImage[top][right];
                 weight += WEIGHT_CORNER;
             }
 
             // Count the cells to the immediate left
-            if (likely(i > 0)) {
+            if (likely(i > 0))
+            {
                 pixel += WEIGHT_SIDE * oldImage[j][left];
                 weight += WEIGHT_SIDE;
             }
 
             // Count the cells to the immediate right
-            if (likely(i < cols - 1)) {
+            if (likely(i < cols - 1))
+            {
                 pixel += WEIGHT_SIDE * oldImage[j][right];
                 weight += WEIGHT_SIDE;
             }
 
             // Count the cells to the bottom left
-            if (likely(i > 0)) {
+            if (likely(i > 0))
+            {
                 pixel += WEIGHT_CORNER * oldImage[bot][left];
                 weight += WEIGHT_CORNER;
             }
@@ -699,7 +787,8 @@ static inline long mask7(long oldImage[N][N], long newImage[N][N], int rows, int
             weight += WEIGHT_SIDE;
 
             // Count the cells to the bottom right
-            if (likely(i < cols - 1)) {
+            if (likely(i < cols - 1))
+            {
                 pixel += WEIGHT_CORNER * oldImage[bot][right];
                 weight += WEIGHT_CORNER;
             }
@@ -713,7 +802,8 @@ static inline long mask7(long oldImage[N][N], long newImage[N][N], int rows, int
 
     // bot row
     top = rows - 2;
-    for (i = 0; i < cols; i++) {
+    for (i = 0; i < cols; i++)
+    {
         left = i - 1;
         right = i + 1;
 
@@ -722,7 +812,8 @@ static inline long mask7(long oldImage[N][N], long newImage[N][N], int rows, int
         register long weight = WEIGHT_CENTRE;
 
         // Count the cells to the top left
-        if (likely(i > 0)) {
+        if (likely(i > 0))
+        {
             pixel += WEIGHT_CORNER * oldImage[top][left];
             weight += WEIGHT_CORNER;
         }
@@ -732,19 +823,22 @@ static inline long mask7(long oldImage[N][N], long newImage[N][N], int rows, int
         weight += WEIGHT_SIDE;
 
         // Count the cells to the top right
-        if (likely(i < cols - 1)) {
+        if (likely(i < cols - 1))
+        {
             pixel += WEIGHT_CORNER * oldImage[top][right];
             weight += WEIGHT_CORNER;
         }
 
         // Count the cells to the immediate left
-        if (likely(i > 0)) {
+        if (likely(i > 0))
+        {
             pixel += WEIGHT_SIDE * oldImage[j][left];
             weight += WEIGHT_SIDE;
         }
 
         // Count the cells to the immediate right
-        if (likely(i < cols - 1)) {
+        if (likely(i < cols - 1))
+        {
             pixel += WEIGHT_SIDE * oldImage[j][right];
             weight += WEIGHT_SIDE;
         }
@@ -768,18 +862,21 @@ static inline long mask7(long oldImage[N][N], long newImage[N][N], int rows, int
         Best   :       106061 usec (ratio: 0.070251)
         Average:       108030 usec (ratio: 0.069941)
  */
-static inline long mask8(long oldImage[N][N], long newImage[N][N], int rows, int cols) {
+static inline long mask8(long oldImage[N][N], long newImage[N][N], int rows, int cols)
+{
     register int i, j, k;
     register int top, bot, left, right; // TODO maybe not necessary
     register long check = 0;
 
     //initialize the new image
-    for (k = 0; k < cols; k += ELEM_PER_CACHE_LINE) {
+    for (k = 0; k < cols; k += ELEM_PER_CACHE_LINE)
+    {
 
         // top row
         j = 0;
         bot = 1;
-        for (i = k; i < k + ELEM_PER_CACHE_LINE; i++) {
+        for (i = k; i < k + ELEM_PER_CACHE_LINE; i++)
+        {
             left = i - 1;
             right = i + 1;
 
@@ -788,19 +885,22 @@ static inline long mask8(long oldImage[N][N], long newImage[N][N], int rows, int
             register long weight = WEIGHT_CENTRE;
 
             // Count the cells to the immediate left
-            if (likely(i > 0)) {
+            if (likely(i > 0))
+            {
                 pixel += WEIGHT_SIDE * oldImage[j][left];
                 weight += WEIGHT_SIDE;
             }
 
             // Count the cells to the immediate right
-            if (likely(i < cols - 1)) {
+            if (likely(i < cols - 1))
+            {
                 pixel += WEIGHT_SIDE * oldImage[j][right];
                 weight += WEIGHT_SIDE;
             }
 
             // Count the cells to the bottom left
-            if (likely(i > 0)) {
+            if (likely(i > 0))
+            {
                 pixel += WEIGHT_CORNER * oldImage[bot][left];
                 weight += WEIGHT_CORNER;
             }
@@ -810,7 +910,8 @@ static inline long mask8(long oldImage[N][N], long newImage[N][N], int rows, int
             weight += WEIGHT_SIDE;
 
             // Count the cells to the bottom right
-            if (likely(i < cols - 1)) {
+            if (likely(i < cols - 1))
+            {
                 pixel += WEIGHT_CORNER * oldImage[bot][right];
                 weight += WEIGHT_CORNER;
             }
@@ -821,10 +922,12 @@ static inline long mask8(long oldImage[N][N], long newImage[N][N], int rows, int
             check += pixel;
         }
 
-        for (j = 1; j < rows - 1; j++) {
+        for (j = 1; j < rows - 1; j++)
+        {
             top = j - 1; // TODO some ternary to make bound checking easier
             bot = j + 1;
-            for (i = k; i < k + ELEM_PER_CACHE_LINE; i++) {
+            for (i = k; i < k + ELEM_PER_CACHE_LINE; i++)
+            {
                 left = i - 1;
                 right = i + 1;
 
@@ -833,7 +936,8 @@ static inline long mask8(long oldImage[N][N], long newImage[N][N], int rows, int
                 register long weight = WEIGHT_CENTRE;
 
                 // Count the cells to the top left
-                if (likely(i > 0)) {
+                if (likely(i > 0))
+                {
                     pixel += WEIGHT_CORNER * oldImage[top][left];
                     weight += WEIGHT_CORNER;
                 }
@@ -843,25 +947,29 @@ static inline long mask8(long oldImage[N][N], long newImage[N][N], int rows, int
                 weight += WEIGHT_SIDE;
 
                 // Count the cells to the top right
-                if (likely(i < cols - 1)) {
+                if (likely(i < cols - 1))
+                {
                     pixel += WEIGHT_CORNER * oldImage[top][right];
                     weight += WEIGHT_CORNER;
                 }
 
                 // Count the cells to the immediate left
-                if (likely(i > 0)) {
+                if (likely(i > 0))
+                {
                     pixel += WEIGHT_SIDE * oldImage[j][left];
                     weight += WEIGHT_SIDE;
                 }
 
                 // Count the cells to the immediate right
-                if (likely(i < cols - 1)) {
+                if (likely(i < cols - 1))
+                {
                     pixel += WEIGHT_SIDE * oldImage[j][right];
                     weight += WEIGHT_SIDE;
                 }
 
                 // Count the cells to the bottom left
-                if (likely(i > 0)) {
+                if (likely(i > 0))
+                {
                     pixel += WEIGHT_CORNER * oldImage[bot][left];
                     weight += WEIGHT_CORNER;
                 }
@@ -871,7 +979,8 @@ static inline long mask8(long oldImage[N][N], long newImage[N][N], int rows, int
                 weight += WEIGHT_SIDE;
 
                 // Count the cells to the bottom right
-                if (likely(i < cols - 1)) {
+                if (likely(i < cols - 1))
+                {
                     pixel += WEIGHT_CORNER * oldImage[bot][right];
                     weight += WEIGHT_CORNER;
                 }
@@ -885,7 +994,8 @@ static inline long mask8(long oldImage[N][N], long newImage[N][N], int rows, int
 
         // bot row
         top = rows - 2;
-        for (i = k; i < k + ELEM_PER_CACHE_LINE; i++) {
+        for (i = k; i < k + ELEM_PER_CACHE_LINE; i++)
+        {
             left = i - 1;
             right = i + 1;
 
@@ -894,7 +1004,8 @@ static inline long mask8(long oldImage[N][N], long newImage[N][N], int rows, int
             register long weight = WEIGHT_CENTRE;
 
             // Count the cells to the top left
-            if (likely(i > 0)) {
+            if (likely(i > 0))
+            {
                 pixel += WEIGHT_CORNER * oldImage[top][left];
                 weight += WEIGHT_CORNER;
             }
@@ -904,19 +1015,22 @@ static inline long mask8(long oldImage[N][N], long newImage[N][N], int rows, int
             weight += WEIGHT_SIDE;
 
             // Count the cells to the top right
-            if (likely(i < cols - 1)) {
+            if (likely(i < cols - 1))
+            {
                 pixel += WEIGHT_CORNER * oldImage[top][right];
                 weight += WEIGHT_CORNER;
             }
 
             // Count the cells to the immediate left
-            if (likely(i > 0)) {
+            if (likely(i > 0))
+            {
                 pixel += WEIGHT_SIDE * oldImage[j][left];
                 weight += WEIGHT_SIDE;
             }
 
             // Count the cells to the immediate right
-            if (likely(i < cols - 1)) {
+            if (likely(i < cols - 1))
+            {
                 pixel += WEIGHT_SIDE * oldImage[j][right];
                 weight += WEIGHT_SIDE;
             }
@@ -939,17 +1053,21 @@ static inline long mask8(long oldImage[N][N], long newImage[N][N], int rows, int
         Average:       111019 usec (ratio: 0.073042)
  *
  */
-static inline long mask9(long oldImage[N][N], long newImage[N][N], int rows, int cols) {
+static inline long mask9(long oldImage[N][N], long newImage[N][N], int rows, int cols)
+{
     register int i, j, k;
     register int top, bot, left, right;
     register long check = 0;
 
     //initialize the new image
-    for (k = 0; k < cols; k += ELEM_PER_CACHE_LINE) {
-        for (j = 0; j < rows; j++) {
+    for (k = 0; k < cols; k += ELEM_PER_CACHE_LINE)
+    {
+        for (j = 0; j < rows; j++)
+        {
             top = j - 1;
             bot = j + 1;
-            for (i = k; i < k + ELEM_PER_CACHE_LINE; i++) {
+            for (i = k; i < k + ELEM_PER_CACHE_LINE; i++)
+            {
                 left = i - 1;
                 right = i + 1;
 
@@ -957,11 +1075,12 @@ static inline long mask9(long oldImage[N][N], long newImage[N][N], int rows, int
                 register long pixel = WEIGHT_CENTRE * oldImage[j][i];
                 register long weight = WEIGHT_CENTRE;
 
-
                 // top
-                if (likely(j > 0)) {
+                if (likely(j > 0))
+                {
                     // Count the cells to the top left
-                    if (likely(i > 0)) {
+                    if (likely(i > 0))
+                    {
                         pixel += WEIGHT_CORNER * oldImage[top][left];
                         weight += WEIGHT_CORNER;
                     }
@@ -971,27 +1090,32 @@ static inline long mask9(long oldImage[N][N], long newImage[N][N], int rows, int
                     weight += WEIGHT_SIDE;
 
                     // Count the cells to the top right
-                    if (likely(i < cols - 1)) {
+                    if (likely(i < cols - 1))
+                    {
                         pixel += WEIGHT_CORNER * oldImage[top][right];
                         weight += WEIGHT_CORNER;
                     }
                 }
 
                 // Count the cells to the immediate left
-                if (likely(i > 0)) {
+                if (likely(i > 0))
+                {
                     pixel += WEIGHT_SIDE * oldImage[j][left];
                     weight += WEIGHT_SIDE;
                 }
 
                 // Count the cells to the immediate right
-                if (likely(i < cols - 1)) {
+                if (likely(i < cols - 1))
+                {
                     pixel += WEIGHT_SIDE * oldImage[j][right];
                     weight += WEIGHT_SIDE;
                 }
 
-                if (likely(j < rows - 1)) {
+                if (likely(j < rows - 1))
+                {
                     // Count the cells to the bottom left
-                    if (likely(i > 0)) {
+                    if (likely(i > 0))
+                    {
                         pixel += WEIGHT_CORNER * oldImage[bot][left];
                         weight += WEIGHT_CORNER;
                     }
@@ -1001,7 +1125,8 @@ static inline long mask9(long oldImage[N][N], long newImage[N][N], int rows, int
                     weight += WEIGHT_SIDE;
 
                     // Count the cells to the bottom right
-                    if (likely(i < cols - 1)) {
+                    if (likely(i < cols - 1))
+                    {
                         pixel += WEIGHT_CORNER * oldImage[bot][right];
                         weight += WEIGHT_CORNER;
                     }
@@ -1030,7 +1155,8 @@ The optimized implementation took:
         Best   :        69287 usec (ratio: 0.046563)
         Average:        69878 usec (ratio: 0.046083)
  */
-static inline long mask10(long oldImage[N][N], long newImage[N][N], int rows, int cols) {
+static inline long mask10(long oldImage[N][N], long newImage[N][N], int rows, int cols)
+{
     register int i, j;
     register int top, bot, left, right; // TODO maybe not necessary
     register long check = 0;
@@ -1038,8 +1164,10 @@ static inline long mask10(long oldImage[N][N], long newImage[N][N], int rows, in
     // top row
     bot = 1;
     j = 0;
-    for (i = 0; i < cols; i++) {
-        if (unlikely(!(i & 7))) {
+    for (i = 0; i < cols; i++)
+    {
+        if (unlikely(!(i & 7)))
+        {
             __builtin_prefetch(&oldImage[j][i + PREFETCH_OFFSET], 0, PREFETCH_LOCALITY);
             __builtin_prefetch(&oldImage[j + 1][i + PREFETCH_OFFSET], 0, PREFETCH_LOCALITY);
         }
@@ -1051,19 +1179,22 @@ static inline long mask10(long oldImage[N][N], long newImage[N][N], int rows, in
         register long weight = WEIGHT_CENTRE;
 
         // Count the cells to the immediate left
-        if (likely(i > 0)) {
+        if (likely(i > 0))
+        {
             pixel += WEIGHT_SIDE * oldImage[j][left];
             weight += WEIGHT_SIDE;
         }
 
         // Count the cells to the immediate right
-        if (likely(i < cols - 1)) {
+        if (likely(i < cols - 1))
+        {
             pixel += WEIGHT_SIDE * oldImage[j][right];
             weight += WEIGHT_SIDE;
         }
 
         // Count the cells to the bottom left
-        if (likely(i > 0)) {
+        if (likely(i > 0))
+        {
             pixel += WEIGHT_CORNER * oldImage[bot][left];
             weight += WEIGHT_CORNER;
         }
@@ -1073,7 +1204,8 @@ static inline long mask10(long oldImage[N][N], long newImage[N][N], int rows, in
         weight += WEIGHT_SIDE;
 
         // Count the cells to the bottom right
-        if (likely(i < cols - 1)) {
+        if (likely(i < cols - 1))
+        {
             pixel += WEIGHT_CORNER * oldImage[bot][right];
             weight += WEIGHT_CORNER;
         }
@@ -1085,11 +1217,14 @@ static inline long mask10(long oldImage[N][N], long newImage[N][N], int rows, in
     }
 
     // middle
-    for (j = 1; j < rows - 1; j++) {
+    for (j = 1; j < rows - 1; j++)
+    {
         top = j - 1; // TODO some ternary to make bound checking easier
         bot = j + 1;
-        for (i = 0; i < cols; i++) {
-            if (unlikely(!(i & 7))) {
+        for (i = 0; i < cols; i++)
+        {
+            if (unlikely(!(i & 7)))
+            {
                 __builtin_prefetch(&oldImage[j][i + PREFETCH_OFFSET], 0, PREFETCH_LOCALITY);
                 __builtin_prefetch(&oldImage[j + 1][i + PREFETCH_OFFSET], 0, PREFETCH_LOCALITY);
                 __builtin_prefetch(&oldImage[j - 1][i + PREFETCH_OFFSET], 0, PREFETCH_LOCALITY);
@@ -1102,7 +1237,8 @@ static inline long mask10(long oldImage[N][N], long newImage[N][N], int rows, in
             register long weight = WEIGHT_CENTRE;
 
             // Count the cells to the top left
-            if (likely(i > 0)) {
+            if (likely(i > 0))
+            {
                 pixel += WEIGHT_CORNER * oldImage[top][left];
                 weight += WEIGHT_CORNER;
             }
@@ -1112,25 +1248,29 @@ static inline long mask10(long oldImage[N][N], long newImage[N][N], int rows, in
             weight += WEIGHT_SIDE;
 
             // Count the cells to the top right
-            if (likely(i < cols - 1)) {
+            if (likely(i < cols - 1))
+            {
                 pixel += WEIGHT_CORNER * oldImage[top][right];
                 weight += WEIGHT_CORNER;
             }
 
             // Count the cells to the immediate left
-            if (likely(i > 0)) {
+            if (likely(i > 0))
+            {
                 pixel += WEIGHT_SIDE * oldImage[j][left];
                 weight += WEIGHT_SIDE;
             }
 
             // Count the cells to the immediate right
-            if (likely(i < cols - 1)) {
+            if (likely(i < cols - 1))
+            {
                 pixel += WEIGHT_SIDE * oldImage[j][right];
                 weight += WEIGHT_SIDE;
             }
 
             // Count the cells to the bottom left
-            if (likely(i > 0)) {
+            if (likely(i > 0))
+            {
                 pixel += WEIGHT_CORNER * oldImage[bot][left];
                 weight += WEIGHT_CORNER;
             }
@@ -1140,7 +1280,8 @@ static inline long mask10(long oldImage[N][N], long newImage[N][N], int rows, in
             weight += WEIGHT_SIDE;
 
             // Count the cells to the bottom right
-            if (likely(i < cols - 1)) {
+            if (likely(i < cols - 1))
+            {
                 pixel += WEIGHT_CORNER * oldImage[bot][right];
                 weight += WEIGHT_CORNER;
             }
@@ -1154,8 +1295,10 @@ static inline long mask10(long oldImage[N][N], long newImage[N][N], int rows, in
 
     // bot row
     top = rows - 2;
-    for (i = 0; i < cols; i++) {
-        if (unlikely(!(i & 7))) {
+    for (i = 0; i < cols; i++)
+    {
+        if (unlikely(!(i & 7)))
+        {
             __builtin_prefetch(&oldImage[j][i + PREFETCH_OFFSET], 0, PREFETCH_LOCALITY);
             __builtin_prefetch(&oldImage[j - 1][i + PREFETCH_OFFSET], 0, PREFETCH_LOCALITY);
         }
@@ -1167,7 +1310,8 @@ static inline long mask10(long oldImage[N][N], long newImage[N][N], int rows, in
         register long weight = WEIGHT_CENTRE;
 
         // Count the cells to the top left
-        if (likely(i > 0)) {
+        if (likely(i > 0))
+        {
             pixel += WEIGHT_CORNER * oldImage[top][left];
             weight += WEIGHT_CORNER;
         }
@@ -1177,19 +1321,22 @@ static inline long mask10(long oldImage[N][N], long newImage[N][N], int rows, in
         weight += WEIGHT_SIDE;
 
         // Count the cells to the top right
-        if (likely(i < cols - 1)) {
+        if (likely(i < cols - 1))
+        {
             pixel += WEIGHT_CORNER * oldImage[top][right];
             weight += WEIGHT_CORNER;
         }
 
         // Count the cells to the immediate left
-        if (likely(i > 0)) {
+        if (likely(i > 0))
+        {
             pixel += WEIGHT_SIDE * oldImage[j][left];
             weight += WEIGHT_SIDE;
         }
 
         // Count the cells to the immediate right
-        if (likely(i < cols - 1)) {
+        if (likely(i < cols - 1))
+        {
             pixel += WEIGHT_SIDE * oldImage[j][right];
             weight += WEIGHT_SIDE;
         }
@@ -1214,7 +1361,8 @@ The optimized implementation took:
         Best   :        69287 usec (ratio: 0.046563)
         Average:        69878 usec (ratio: 0.046083)
  */
-static inline long mask11(long oldImage[N][N], long newImage[N][N], int rows, int cols) {
+static inline long mask11(long oldImage[N][N], long newImage[N][N], int rows, int cols)
+{
     register int i, j;
     register int top, bot, left, right; // TODO maybe not necessary
     register long check = 0;
@@ -1222,7 +1370,8 @@ static inline long mask11(long oldImage[N][N], long newImage[N][N], int rows, in
     // top row
     bot = 1;
     j = 0;
-    for (i = 0; i < cols; i++) {
+    for (i = 0; i < cols; i++)
+    {
         left = i - 1;
         right = i + 1;
 
@@ -1231,19 +1380,22 @@ static inline long mask11(long oldImage[N][N], long newImage[N][N], int rows, in
         register long weight = WEIGHT_CENTRE;
 
         // Count the cells to the immediate left
-        if (i > 0) {
+        if (i > 0)
+        {
             pixel += WEIGHT_SIDE * oldImage[j][left];
             weight += WEIGHT_SIDE;
         }
 
         // Count the cells to the immediate right
-        if (i < cols - 1) {
+        if (i < cols - 1)
+        {
             pixel += WEIGHT_SIDE * oldImage[j][right];
             weight += WEIGHT_SIDE;
         }
 
         // Count the cells to the bottom left
-        if (i > 0) {
+        if (i > 0)
+        {
             pixel += WEIGHT_CORNER * oldImage[bot][left];
             weight += WEIGHT_CORNER;
         }
@@ -1253,7 +1405,8 @@ static inline long mask11(long oldImage[N][N], long newImage[N][N], int rows, in
         weight += WEIGHT_SIDE;
 
         // Count the cells to the bottom right
-        if (i < cols - 1) {
+        if (i < cols - 1)
+        {
             pixel += WEIGHT_CORNER * oldImage[bot][right];
             weight += WEIGHT_CORNER;
         }
@@ -1265,10 +1418,12 @@ static inline long mask11(long oldImage[N][N], long newImage[N][N], int rows, in
     }
 
     // middle
-    for (j = 1; j < rows - 1; j++) {
+    for (j = 1; j < rows - 1; j++)
+    {
         top = j - 1; // TODO some ternary to make bound checking easier
         bot = j + 1;
-        for (i = 0; i < cols; i++) {
+        for (i = 0; i < cols; i++)
+        {
             left = i - 1;
             right = i + 1;
 
@@ -1277,7 +1432,8 @@ static inline long mask11(long oldImage[N][N], long newImage[N][N], int rows, in
             register long weight = WEIGHT_CENTRE;
 
             // Count the cells to the top left
-            if (i > 0) {
+            if (i > 0)
+            {
                 pixel += WEIGHT_CORNER * oldImage[top][left];
                 weight += WEIGHT_CORNER;
             }
@@ -1287,25 +1443,29 @@ static inline long mask11(long oldImage[N][N], long newImage[N][N], int rows, in
             weight += WEIGHT_SIDE;
 
             // Count the cells to the top right
-            if (i < cols - 1) {
+            if (i < cols - 1)
+            {
                 pixel += WEIGHT_CORNER * oldImage[top][right];
                 weight += WEIGHT_CORNER;
             }
 
             // Count the cells to the immediate left
-            if (i > 0) {
+            if (i > 0)
+            {
                 pixel += WEIGHT_SIDE * oldImage[j][left];
                 weight += WEIGHT_SIDE;
             }
 
             // Count the cells to the immediate right
-            if (i < cols - 1) {
+            if (i < cols - 1)
+            {
                 pixel += WEIGHT_SIDE * oldImage[j][right];
                 weight += WEIGHT_SIDE;
             }
 
             // Count the cells to the bottom left
-            if (i > 0) {
+            if (i > 0)
+            {
                 pixel += WEIGHT_CORNER * oldImage[bot][left];
                 weight += WEIGHT_CORNER;
             }
@@ -1315,7 +1475,8 @@ static inline long mask11(long oldImage[N][N], long newImage[N][N], int rows, in
             weight += WEIGHT_SIDE;
 
             // Count the cells to the bottom right
-            if (i < cols - 1) {
+            if (i < cols - 1)
+            {
                 pixel += WEIGHT_CORNER * oldImage[bot][right];
                 weight += WEIGHT_CORNER;
             }
@@ -1329,7 +1490,8 @@ static inline long mask11(long oldImage[N][N], long newImage[N][N], int rows, in
 
     // bot row
     top = rows - 2;
-    for (i = 0; i < cols; i++) {
+    for (i = 0; i < cols; i++)
+    {
         left = i - 1;
         right = i + 1;
 
@@ -1338,7 +1500,8 @@ static inline long mask11(long oldImage[N][N], long newImage[N][N], int rows, in
         register long weight = WEIGHT_CENTRE;
 
         // Count the cells to the top left
-        if (i > 0) {
+        if (i > 0)
+        {
             pixel += WEIGHT_CORNER * oldImage[top][left];
             weight += WEIGHT_CORNER;
         }
@@ -1348,19 +1511,22 @@ static inline long mask11(long oldImage[N][N], long newImage[N][N], int rows, in
         weight += WEIGHT_SIDE;
 
         // Count the cells to the top right
-        if (i < cols - 1) {
+        if (i < cols - 1)
+        {
             pixel += WEIGHT_CORNER * oldImage[top][right];
             weight += WEIGHT_CORNER;
         }
 
         // Count the cells to the immediate left
-        if (i > 0) {
+        if (i > 0)
+        {
             pixel += WEIGHT_SIDE * oldImage[j][left];
             weight += WEIGHT_SIDE;
         }
 
         // Count the cells to the immediate right
-        if (i < cols - 1) {
+        if (i < cols - 1)
+        {
             pixel += WEIGHT_SIDE * oldImage[j][right];
             weight += WEIGHT_SIDE;
         }
@@ -1385,7 +1551,8 @@ The optimized implementation took:
         Best   :        63315 usec (ratio: 0.042622)
         Average:        63718 usec (ratio: 0.041987)
  */
-static inline long mask12(long oldImage[N][N], long newImage[N][N], int rows, int cols) {
+static inline long mask12(long oldImage[N][N], long newImage[N][N], int rows, int cols)
+{
     register int i, j;
     register int top, bot, left, right; // TODO maybe not necessary
     register long check = 0;
@@ -1393,8 +1560,10 @@ static inline long mask12(long oldImage[N][N], long newImage[N][N], int rows, in
     // top row
     bot = 1;
     j = 0;
-    for (i = 0; i < cols; i++) {
-        if (unlikely(!(i & 7))) {
+    for (i = 0; i < cols; i++)
+    {
+        if (unlikely(!(i & 7)))
+        {
             __builtin_prefetch(&oldImage[j][i + PREFETCH_OFFSET], 0, PREFETCH_LOCALITY);
             __builtin_prefetch(&oldImage[j + 1][i + PREFETCH_OFFSET], 0, PREFETCH_LOCALITY);
         }
@@ -1406,19 +1575,22 @@ static inline long mask12(long oldImage[N][N], long newImage[N][N], int rows, in
         register long weight = WEIGHT_CENTRE;
 
         // Count the cells to the immediate left
-        if (i > 0) {
+        if (i > 0)
+        {
             pixel += WEIGHT_SIDE * oldImage[j][left];
             weight += WEIGHT_SIDE;
         }
 
         // Count the cells to the immediate right
-        if (i < cols - 1) {
+        if (i < cols - 1)
+        {
             pixel += WEIGHT_SIDE * oldImage[j][right];
             weight += WEIGHT_SIDE;
         }
 
         // Count the cells to the bottom left
-        if (i > 0) {
+        if (i > 0)
+        {
             pixel += WEIGHT_CORNER * oldImage[bot][left];
             weight += WEIGHT_CORNER;
         }
@@ -1428,7 +1600,8 @@ static inline long mask12(long oldImage[N][N], long newImage[N][N], int rows, in
         weight += WEIGHT_SIDE;
 
         // Count the cells to the bottom right
-        if (i < cols - 1) {
+        if (i < cols - 1)
+        {
             pixel += WEIGHT_CORNER * oldImage[bot][right];
             weight += WEIGHT_CORNER;
         }
@@ -1440,11 +1613,14 @@ static inline long mask12(long oldImage[N][N], long newImage[N][N], int rows, in
     }
 
     // middle
-    for (j = 1; j < rows - 1; j++) {
+    for (j = 1; j < rows - 1; j++)
+    {
         top = j - 1; // TODO some ternary to make bound checking easier
         bot = j + 1;
-        for (i = 0; i < cols; i++) {
-            if (!(i & 7)) {
+        for (i = 0; i < cols; i++)
+        {
+            if (!(i & 7))
+            {
                 __builtin_prefetch(&oldImage[j][i + PREFETCH_OFFSET], 0, PREFETCH_LOCALITY);
                 __builtin_prefetch(&oldImage[j + 1][i + PREFETCH_OFFSET], 0, PREFETCH_LOCALITY);
                 __builtin_prefetch(&oldImage[j - 1][i + PREFETCH_OFFSET], 0, PREFETCH_LOCALITY);
@@ -1457,7 +1633,8 @@ static inline long mask12(long oldImage[N][N], long newImage[N][N], int rows, in
             register long weight = WEIGHT_CENTRE;
 
             // Count the cells to the top left
-            if (i > 0) {
+            if (i > 0)
+            {
                 pixel += WEIGHT_CORNER * oldImage[top][left];
                 weight += WEIGHT_CORNER;
             }
@@ -1467,25 +1644,29 @@ static inline long mask12(long oldImage[N][N], long newImage[N][N], int rows, in
             weight += WEIGHT_SIDE;
 
             // Count the cells to the top right
-            if (i < cols - 1) {
+            if (i < cols - 1)
+            {
                 pixel += WEIGHT_CORNER * oldImage[top][right];
                 weight += WEIGHT_CORNER;
             }
 
             // Count the cells to the immediate left
-            if (i > 0) {
+            if (i > 0)
+            {
                 pixel += WEIGHT_SIDE * oldImage[j][left];
                 weight += WEIGHT_SIDE;
             }
 
             // Count the cells to the immediate right
-            if (i < cols - 1) {
+            if (i < cols - 1)
+            {
                 pixel += WEIGHT_SIDE * oldImage[j][right];
                 weight += WEIGHT_SIDE;
             }
 
             // Count the cells to the bottom left
-            if (i > 0) {
+            if (i > 0)
+            {
                 pixel += WEIGHT_CORNER * oldImage[bot][left];
                 weight += WEIGHT_CORNER;
             }
@@ -1495,7 +1676,8 @@ static inline long mask12(long oldImage[N][N], long newImage[N][N], int rows, in
             weight += WEIGHT_SIDE;
 
             // Count the cells to the bottom right
-            if (i < cols - 1) {
+            if (i < cols - 1)
+            {
                 pixel += WEIGHT_CORNER * oldImage[bot][right];
                 weight += WEIGHT_CORNER;
             }
@@ -1509,8 +1691,10 @@ static inline long mask12(long oldImage[N][N], long newImage[N][N], int rows, in
 
     // bot row
     top = rows - 2;
-    for (i = 0; i < cols; i++) {
-        if (!(i & 7)) {
+    for (i = 0; i < cols; i++)
+    {
+        if (!(i & 7))
+        {
             __builtin_prefetch(&oldImage[j][i + PREFETCH_OFFSET], 0, PREFETCH_LOCALITY);
             __builtin_prefetch(&oldImage[j - 1][i + PREFETCH_OFFSET], 0, PREFETCH_LOCALITY);
         }
@@ -1522,7 +1706,8 @@ static inline long mask12(long oldImage[N][N], long newImage[N][N], int rows, in
         register long weight = WEIGHT_CENTRE;
 
         // Count the cells to the top left
-        if (i > 0) {
+        if (i > 0)
+        {
             pixel += WEIGHT_CORNER * oldImage[top][left];
             weight += WEIGHT_CORNER;
         }
@@ -1532,19 +1717,22 @@ static inline long mask12(long oldImage[N][N], long newImage[N][N], int rows, in
         weight += WEIGHT_SIDE;
 
         // Count the cells to the top right
-        if (i < cols - 1) {
+        if (i < cols - 1)
+        {
             pixel += WEIGHT_CORNER * oldImage[top][right];
             weight += WEIGHT_CORNER;
         }
 
         // Count the cells to the immediate left
-        if (i > 0) {
+        if (i > 0)
+        {
             pixel += WEIGHT_SIDE * oldImage[j][left];
             weight += WEIGHT_SIDE;
         }
 
         // Count the cells to the immediate right
-        if (i < cols - 1) {
+        if (i < cols - 1)
+        {
             pixel += WEIGHT_SIDE * oldImage[j][right];
             weight += WEIGHT_SIDE;
         }
@@ -1570,7 +1758,8 @@ The optimized implementation took:
         Best   :        57526 usec (ratio: 0.038610)
         Average:        58103 usec (ratio: 0.038300)
  */
-static inline long mask13(long oldImage[N][N], long newImage[N][N], int rows, int cols) {
+static inline long mask13(long oldImage[N][N], long newImage[N][N], int rows, int cols)
+{
     register int i, j;
     register int top, bot, left, right; // TODO maybe not necessary
     register long check = 0;
@@ -1578,7 +1767,8 @@ static inline long mask13(long oldImage[N][N], long newImage[N][N], int rows, in
     // top row
     bot = 1;
     j = 0;
-    for (i = 0; i < cols; i++) {
+    for (i = 0; i < cols; i++)
+    {
         left = i - 1;
         right = i + 1;
 
@@ -1590,14 +1780,16 @@ static inline long mask13(long oldImage[N][N], long newImage[N][N], int rows, in
         weight = WEIGHT_CENTRE + WEIGHT_SIDE;
 
         // Count the cells to the immediate left and bottom left
-        if (i > 0) {
+        if (i > 0)
+        {
             pixel += WEIGHT_SIDE * oldImage[j][left] +
                      WEIGHT_CORNER * oldImage[bot][left];
             weight += WEIGHT_SIDE + WEIGHT_CORNER;
         }
 
         // Count the cells to the immediate right and bottom right
-        if (i < cols - 1) {
+        if (i < cols - 1)
+        {
             pixel += WEIGHT_SIDE * oldImage[j][right] +
                      WEIGHT_CORNER * oldImage[bot][right];
             weight += WEIGHT_SIDE + WEIGHT_CORNER;
@@ -1610,10 +1802,12 @@ static inline long mask13(long oldImage[N][N], long newImage[N][N], int rows, in
     }
 
     // middle
-    for (j = 1; j < rows - 1; j++) {
+    for (j = 1; j < rows - 1; j++)
+    {
         top = j - 1; // TODO some ternary to make bound checking easier
         bot = j + 1;
-        for (i = 0; i < cols; i++) {
+        for (i = 0; i < cols; i++)
+        {
             left = i - 1;
             right = i + 1;
 
@@ -1627,7 +1821,8 @@ static inline long mask13(long oldImage[N][N], long newImage[N][N], int rows, in
             weight = WEIGHT_CENTRE + WEIGHT_SIDE + WEIGHT_SIDE;
 
             // Count the cells to the immediate left and bottom left and top left
-            if (i > 0) {
+            if (i > 0)
+            {
                 pixel += WEIGHT_SIDE * oldImage[j][left] +
                          WEIGHT_CORNER * oldImage[bot][left] +
                          WEIGHT_CORNER * oldImage[top][left];
@@ -1635,7 +1830,8 @@ static inline long mask13(long oldImage[N][N], long newImage[N][N], int rows, in
             }
 
             // Count the cells to the immediate right and bottom right and top right
-            if (i < cols - 1) {
+            if (i < cols - 1)
+            {
                 pixel += WEIGHT_SIDE * oldImage[j][right] +
                          WEIGHT_CORNER * oldImage[bot][right] +
                          WEIGHT_CORNER * oldImage[top][right];
@@ -1651,7 +1847,8 @@ static inline long mask13(long oldImage[N][N], long newImage[N][N], int rows, in
 
     // bot row
     top = rows - 2;
-    for (i = 0; i < cols; i++) {
+    for (i = 0; i < cols; i++)
+    {
         left = i - 1;
         right = i + 1;
 
@@ -1664,14 +1861,16 @@ static inline long mask13(long oldImage[N][N], long newImage[N][N], int rows, in
         weight = WEIGHT_CENTRE + WEIGHT_SIDE;
 
         // Count the cells to the immediate left and top left
-        if (i > 0) {
+        if (i > 0)
+        {
             pixel += WEIGHT_SIDE * oldImage[j][left] +
                      WEIGHT_CORNER * oldImage[top][left];
             weight += WEIGHT_SIDE + WEIGHT_CORNER;
         }
 
         // Count the cells to the immediate right and top right
-        if (i < cols - 1) {
+        if (i < cols - 1)
+        {
             pixel += WEIGHT_SIDE * oldImage[j][right] +
                      WEIGHT_CORNER * oldImage[top][right];
             weight += WEIGHT_SIDE + WEIGHT_CORNER;
@@ -1696,7 +1895,8 @@ The optimized implementation took:
         Best   :        25025 usec (ratio: 0.016830)
         Average:        25659 usec (ratio: 0.016484)
  */
-static inline long mask14(long oldImage[N][N], long newImage[N][N], int rows, int cols) {
+static inline long mask14(long oldImage[N][N], long newImage[N][N], int rows, int cols)
+{
     register int i, j;
     register int top, bot, left, right; // TODO maybe not necessary
     register long check = 0;
@@ -1718,7 +1918,8 @@ static inline long mask14(long oldImage[N][N], long newImage[N][N], int rows, in
     // top row
     bot = 1;
     j = 0;
-    for (i = 1; i < cols - 1; i++) {
+    for (i = 1; i < cols - 1; i++)
+    {
         left = i - 1;
         right = i + 1;
 
@@ -1749,8 +1950,9 @@ static inline long mask14(long oldImage[N][N], long newImage[N][N], int rows, in
 
     // MIDDLE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    for (j = 1; j < rows - 1; j++) {
-        top = j - 1; 
+    for (j = 1; j < rows - 1; j++)
+    {
+        top = j - 1;
         bot = j + 1;
 
         // left pixel; center, bot, right, bot right, top, top right
@@ -1766,7 +1968,8 @@ static inline long mask14(long oldImage[N][N], long newImage[N][N], int rows, in
         newImage[j][0] = pixel;
         check += pixel;
 
-        for (i = 1; i < cols - 1; i++) {
+        for (i = 1; i < cols - 1; i++)
+        {
             left = i - 1;
             right = i + 1;
 
@@ -1816,7 +2019,8 @@ static inline long mask14(long oldImage[N][N], long newImage[N][N], int rows, in
     check += pixel;
 
     // bot row
-    for (i = 1; i < cols - 1; i++) {
+    for (i = 1; i < cols - 1; i++)
+    {
         left = i - 1;
         right = i + 1;
 
@@ -1863,7 +2067,8 @@ The optimized implementation took:
         Best   :        24801 usec (ratio: 0.016770)
         Average:        25267 usec (ratio: 0.016711)
  */
-static inline long mask15(long oldImage[N][N], long newImage[N][N], int rows, int cols) {
+static inline long mask15(long oldImage[N][N], long newImage[N][N], int rows, int cols)
+{
     register int i, j, n;
     register int n_precalculate = (cols + 5) / 8; // division is slow to do each loop
     register int top, bot, left, right;
@@ -1888,113 +2093,115 @@ static inline long mask15(long oldImage[N][N], long newImage[N][N], int rows, in
     i = 1;
     j = 0;
     n = n_precalculate;
-    switch ((cols - 2) & 7) {
-        case 0:
-            do {
-                left = i - 1;
-                right = i + 1;
-                pixel = (WEIGHT_CENTRE * oldImage[j][i] +
-                         WEIGHT_SIDE * oldImage[bot][i] +
-                         WEIGHT_SIDE * oldImage[j][left] +
-                         WEIGHT_CORNER * oldImage[bot][left] +
-                         WEIGHT_SIDE * oldImage[j][right] +
-                         WEIGHT_CORNER * oldImage[bot][right]) /
-                        WEIGHT_EDGE_TOTAL;
-                newImage[j][i++] = pixel;
-                check += pixel;
+    switch ((cols - 2) & 7)
+    {
+    case 0:
+        do
+        {
+            left = i - 1;
+            right = i + 1;
+            pixel = (WEIGHT_CENTRE * oldImage[j][i] +
+                     WEIGHT_SIDE * oldImage[bot][i] +
+                     WEIGHT_SIDE * oldImage[j][left] +
+                     WEIGHT_CORNER * oldImage[bot][left] +
+                     WEIGHT_SIDE * oldImage[j][right] +
+                     WEIGHT_CORNER * oldImage[bot][right]) /
+                    WEIGHT_EDGE_TOTAL;
+            newImage[j][i++] = pixel;
+            check += pixel;
 
-                case 7:
-                    left = i - 1;
-                    right = i + 1;
-                    pixel = (WEIGHT_CENTRE * oldImage[j][i] +
-                             WEIGHT_SIDE * oldImage[bot][i] +
-                             WEIGHT_SIDE * oldImage[j][left] +
-                             WEIGHT_CORNER * oldImage[bot][left] +
-                             WEIGHT_SIDE * oldImage[j][right] +
-                             WEIGHT_CORNER * oldImage[bot][right]) /
-                            WEIGHT_EDGE_TOTAL;
-                    newImage[j][i++] = pixel;
-                    check += pixel;
+        case 7:
+            left = i - 1;
+            right = i + 1;
+            pixel = (WEIGHT_CENTRE * oldImage[j][i] +
+                     WEIGHT_SIDE * oldImage[bot][i] +
+                     WEIGHT_SIDE * oldImage[j][left] +
+                     WEIGHT_CORNER * oldImage[bot][left] +
+                     WEIGHT_SIDE * oldImage[j][right] +
+                     WEIGHT_CORNER * oldImage[bot][right]) /
+                    WEIGHT_EDGE_TOTAL;
+            newImage[j][i++] = pixel;
+            check += pixel;
 
-                case 6:
-                    left = i - 1;
-                    right = i + 1;
-                    pixel = (WEIGHT_CENTRE * oldImage[j][i] +
-                             WEIGHT_SIDE * oldImage[bot][i] +
-                             WEIGHT_SIDE * oldImage[j][left] +
-                             WEIGHT_CORNER * oldImage[bot][left] +
-                             WEIGHT_SIDE * oldImage[j][right] +
-                             WEIGHT_CORNER * oldImage[bot][right]) /
-                            WEIGHT_EDGE_TOTAL;
-                    newImage[j][i++] = pixel;
-                    check += pixel;
+        case 6:
+            left = i - 1;
+            right = i + 1;
+            pixel = (WEIGHT_CENTRE * oldImage[j][i] +
+                     WEIGHT_SIDE * oldImage[bot][i] +
+                     WEIGHT_SIDE * oldImage[j][left] +
+                     WEIGHT_CORNER * oldImage[bot][left] +
+                     WEIGHT_SIDE * oldImage[j][right] +
+                     WEIGHT_CORNER * oldImage[bot][right]) /
+                    WEIGHT_EDGE_TOTAL;
+            newImage[j][i++] = pixel;
+            check += pixel;
 
-                case 5:
-                    left = i - 1;
-                    right = i + 1;
-                    pixel = (WEIGHT_CENTRE * oldImage[j][i] +
-                             WEIGHT_SIDE * oldImage[bot][i] +
-                             WEIGHT_SIDE * oldImage[j][left] +
-                             WEIGHT_CORNER * oldImage[bot][left] +
-                             WEIGHT_SIDE * oldImage[j][right] +
-                             WEIGHT_CORNER * oldImage[bot][right]) /
-                            WEIGHT_EDGE_TOTAL;
-                    newImage[j][i++] = pixel;
-                    check += pixel;
+        case 5:
+            left = i - 1;
+            right = i + 1;
+            pixel = (WEIGHT_CENTRE * oldImage[j][i] +
+                     WEIGHT_SIDE * oldImage[bot][i] +
+                     WEIGHT_SIDE * oldImage[j][left] +
+                     WEIGHT_CORNER * oldImage[bot][left] +
+                     WEIGHT_SIDE * oldImage[j][right] +
+                     WEIGHT_CORNER * oldImage[bot][right]) /
+                    WEIGHT_EDGE_TOTAL;
+            newImage[j][i++] = pixel;
+            check += pixel;
 
-                case 4:
-                    left = i - 1;
-                    right = i + 1;
-                    pixel = (WEIGHT_CENTRE * oldImage[j][i] +
-                             WEIGHT_SIDE * oldImage[bot][i] +
-                             WEIGHT_SIDE * oldImage[j][left] +
-                             WEIGHT_CORNER * oldImage[bot][left] +
-                             WEIGHT_SIDE * oldImage[j][right] +
-                             WEIGHT_CORNER * oldImage[bot][right]) /
-                            WEIGHT_EDGE_TOTAL;
-                    newImage[j][i++] = pixel;
-                    check += pixel;
+        case 4:
+            left = i - 1;
+            right = i + 1;
+            pixel = (WEIGHT_CENTRE * oldImage[j][i] +
+                     WEIGHT_SIDE * oldImage[bot][i] +
+                     WEIGHT_SIDE * oldImage[j][left] +
+                     WEIGHT_CORNER * oldImage[bot][left] +
+                     WEIGHT_SIDE * oldImage[j][right] +
+                     WEIGHT_CORNER * oldImage[bot][right]) /
+                    WEIGHT_EDGE_TOTAL;
+            newImage[j][i++] = pixel;
+            check += pixel;
 
-                case 3:
-                    left = i - 1;
-                    right = i + 1;
-                    pixel = (WEIGHT_CENTRE * oldImage[j][i] +
-                             WEIGHT_SIDE * oldImage[bot][i] +
-                             WEIGHT_SIDE * oldImage[j][left] +
-                             WEIGHT_CORNER * oldImage[bot][left] +
-                             WEIGHT_SIDE * oldImage[j][right] +
-                             WEIGHT_CORNER * oldImage[bot][right]) /
-                            WEIGHT_EDGE_TOTAL;
-                    newImage[j][i++] = pixel;
-                    check += pixel;
+        case 3:
+            left = i - 1;
+            right = i + 1;
+            pixel = (WEIGHT_CENTRE * oldImage[j][i] +
+                     WEIGHT_SIDE * oldImage[bot][i] +
+                     WEIGHT_SIDE * oldImage[j][left] +
+                     WEIGHT_CORNER * oldImage[bot][left] +
+                     WEIGHT_SIDE * oldImage[j][right] +
+                     WEIGHT_CORNER * oldImage[bot][right]) /
+                    WEIGHT_EDGE_TOTAL;
+            newImage[j][i++] = pixel;
+            check += pixel;
 
-                case 2:
-                    left = i - 1;
-                    right = i + 1;
-                    pixel = (WEIGHT_CENTRE * oldImage[j][i] +
-                             WEIGHT_SIDE * oldImage[bot][i] +
-                             WEIGHT_SIDE * oldImage[j][left] +
-                             WEIGHT_CORNER * oldImage[bot][left] +
-                             WEIGHT_SIDE * oldImage[j][right] +
-                             WEIGHT_CORNER * oldImage[bot][right]) /
-                            WEIGHT_EDGE_TOTAL;
-                    newImage[j][i++] = pixel;
-                    check += pixel;
+        case 2:
+            left = i - 1;
+            right = i + 1;
+            pixel = (WEIGHT_CENTRE * oldImage[j][i] +
+                     WEIGHT_SIDE * oldImage[bot][i] +
+                     WEIGHT_SIDE * oldImage[j][left] +
+                     WEIGHT_CORNER * oldImage[bot][left] +
+                     WEIGHT_SIDE * oldImage[j][right] +
+                     WEIGHT_CORNER * oldImage[bot][right]) /
+                    WEIGHT_EDGE_TOTAL;
+            newImage[j][i++] = pixel;
+            check += pixel;
 
-                case 1:
-                    left = i - 1;
-                    right = i + 1;
-                    pixel = (WEIGHT_CENTRE * oldImage[j][i] +
-                             WEIGHT_SIDE * oldImage[bot][i] +
-                             WEIGHT_SIDE * oldImage[j][left] +
-                             WEIGHT_CORNER * oldImage[bot][left] +
-                             WEIGHT_SIDE * oldImage[j][right] +
-                             WEIGHT_CORNER * oldImage[bot][right]) /
-                            WEIGHT_EDGE_TOTAL;
-                    newImage[j][i++] = pixel;
-                    check += pixel;
+        case 1:
+            left = i - 1;
+            right = i + 1;
+            pixel = (WEIGHT_CENTRE * oldImage[j][i] +
+                     WEIGHT_SIDE * oldImage[bot][i] +
+                     WEIGHT_SIDE * oldImage[j][left] +
+                     WEIGHT_CORNER * oldImage[bot][left] +
+                     WEIGHT_SIDE * oldImage[j][right] +
+                     WEIGHT_CORNER * oldImage[bot][right]) /
+                    WEIGHT_EDGE_TOTAL;
+            newImage[j][i++] = pixel;
+            check += pixel;
 
-            } while (--n > 0);
+        } while (--n > 0);
     }
 
     // top right pixel
@@ -2010,7 +2217,8 @@ static inline long mask15(long oldImage[N][N], long newImage[N][N], int rows, in
 
     // MIDDLE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    for (j = 1; j < rows - 1; j++) {
+    for (j = 1; j < rows - 1; j++)
+    {
         top = j - 1;
         bot = j + 1;
 
@@ -2029,136 +2237,138 @@ static inline long mask15(long oldImage[N][N], long newImage[N][N], int rows, in
 
         i = 1;
         n = n_precalculate;
-        switch ((cols - 2) & 7) {
-            case 0:
-                do {
-                    left = i - 1;
-                    right = i + 1;
-                    pixel = (WEIGHT_CENTRE * oldImage[j][i] +
-                             WEIGHT_SIDE * oldImage[bot][i] +
-                             WEIGHT_SIDE * oldImage[top][i] +
-                             WEIGHT_SIDE * oldImage[j][left] +
-                             WEIGHT_CORNER * oldImage[bot][left] +
-                             WEIGHT_CORNER * oldImage[top][left] +
-                             WEIGHT_SIDE * oldImage[j][right] +
-                             WEIGHT_CORNER * oldImage[bot][right] +
-                             WEIGHT_CORNER * oldImage[top][right]) /
-                            WEIGHT_CENTER_TOTAL;
-                    newImage[j][i++] = pixel;
-                    check += pixel;
-                    case 7:
-                        left = i - 1;
-                        right = i + 1;
-                        pixel = (WEIGHT_CENTRE * oldImage[j][i] +
-                                 WEIGHT_SIDE * oldImage[bot][i] +
-                                 WEIGHT_SIDE * oldImage[top][i] +
-                                 WEIGHT_SIDE * oldImage[j][left] +
-                                 WEIGHT_CORNER * oldImage[bot][left] +
-                                 WEIGHT_CORNER * oldImage[top][left] +
-                                 WEIGHT_SIDE * oldImage[j][right] +
-                                 WEIGHT_CORNER * oldImage[bot][right] +
-                                 WEIGHT_CORNER * oldImage[top][right]) /
-                                WEIGHT_CENTER_TOTAL;
-                        newImage[j][i++] = pixel;
-                        check += pixel;
+        switch ((cols - 2) & 7)
+        {
+        case 0:
+            do
+            {
+                left = i - 1;
+                right = i + 1;
+                pixel = (WEIGHT_CENTRE * oldImage[j][i] +
+                         WEIGHT_SIDE * oldImage[bot][i] +
+                         WEIGHT_SIDE * oldImage[top][i] +
+                         WEIGHT_SIDE * oldImage[j][left] +
+                         WEIGHT_CORNER * oldImage[bot][left] +
+                         WEIGHT_CORNER * oldImage[top][left] +
+                         WEIGHT_SIDE * oldImage[j][right] +
+                         WEIGHT_CORNER * oldImage[bot][right] +
+                         WEIGHT_CORNER * oldImage[top][right]) /
+                        WEIGHT_CENTER_TOTAL;
+                newImage[j][i++] = pixel;
+                check += pixel;
+            case 7:
+                left = i - 1;
+                right = i + 1;
+                pixel = (WEIGHT_CENTRE * oldImage[j][i] +
+                         WEIGHT_SIDE * oldImage[bot][i] +
+                         WEIGHT_SIDE * oldImage[top][i] +
+                         WEIGHT_SIDE * oldImage[j][left] +
+                         WEIGHT_CORNER * oldImage[bot][left] +
+                         WEIGHT_CORNER * oldImage[top][left] +
+                         WEIGHT_SIDE * oldImage[j][right] +
+                         WEIGHT_CORNER * oldImage[bot][right] +
+                         WEIGHT_CORNER * oldImage[top][right]) /
+                        WEIGHT_CENTER_TOTAL;
+                newImage[j][i++] = pixel;
+                check += pixel;
 
-                    case 6:
-                        left = i - 1;
-                        right = i + 1;
-                        pixel = (WEIGHT_CENTRE * oldImage[j][i] +
-                                 WEIGHT_SIDE * oldImage[bot][i] +
-                                 WEIGHT_SIDE * oldImage[top][i] +
-                                 WEIGHT_SIDE * oldImage[j][left] +
-                                 WEIGHT_CORNER * oldImage[bot][left] +
-                                 WEIGHT_CORNER * oldImage[top][left] +
-                                 WEIGHT_SIDE * oldImage[j][right] +
-                                 WEIGHT_CORNER * oldImage[bot][right] +
-                                 WEIGHT_CORNER * oldImage[top][right]) /
-                                WEIGHT_CENTER_TOTAL;
-                        newImage[j][i++] = pixel;
-                        check += pixel;
+            case 6:
+                left = i - 1;
+                right = i + 1;
+                pixel = (WEIGHT_CENTRE * oldImage[j][i] +
+                         WEIGHT_SIDE * oldImage[bot][i] +
+                         WEIGHT_SIDE * oldImage[top][i] +
+                         WEIGHT_SIDE * oldImage[j][left] +
+                         WEIGHT_CORNER * oldImage[bot][left] +
+                         WEIGHT_CORNER * oldImage[top][left] +
+                         WEIGHT_SIDE * oldImage[j][right] +
+                         WEIGHT_CORNER * oldImage[bot][right] +
+                         WEIGHT_CORNER * oldImage[top][right]) /
+                        WEIGHT_CENTER_TOTAL;
+                newImage[j][i++] = pixel;
+                check += pixel;
 
-                    case 5:
-                        left = i - 1;
-                        right = i + 1;
-                        pixel = (WEIGHT_CENTRE * oldImage[j][i] +
-                                 WEIGHT_SIDE * oldImage[bot][i] +
-                                 WEIGHT_SIDE * oldImage[top][i] +
-                                 WEIGHT_SIDE * oldImage[j][left] +
-                                 WEIGHT_CORNER * oldImage[bot][left] +
-                                 WEIGHT_CORNER * oldImage[top][left] +
-                                 WEIGHT_SIDE * oldImage[j][right] +
-                                 WEIGHT_CORNER * oldImage[bot][right] +
-                                 WEIGHT_CORNER * oldImage[top][right]) /
-                                WEIGHT_CENTER_TOTAL;
-                        newImage[j][i++] = pixel;
-                        check += pixel;
+            case 5:
+                left = i - 1;
+                right = i + 1;
+                pixel = (WEIGHT_CENTRE * oldImage[j][i] +
+                         WEIGHT_SIDE * oldImage[bot][i] +
+                         WEIGHT_SIDE * oldImage[top][i] +
+                         WEIGHT_SIDE * oldImage[j][left] +
+                         WEIGHT_CORNER * oldImage[bot][left] +
+                         WEIGHT_CORNER * oldImage[top][left] +
+                         WEIGHT_SIDE * oldImage[j][right] +
+                         WEIGHT_CORNER * oldImage[bot][right] +
+                         WEIGHT_CORNER * oldImage[top][right]) /
+                        WEIGHT_CENTER_TOTAL;
+                newImage[j][i++] = pixel;
+                check += pixel;
 
-                    case 4:
-                        left = i - 1;
-                        right = i + 1;
-                        pixel = (WEIGHT_CENTRE * oldImage[j][i] +
-                                 WEIGHT_SIDE * oldImage[bot][i] +
-                                 WEIGHT_SIDE * oldImage[top][i] +
-                                 WEIGHT_SIDE * oldImage[j][left] +
-                                 WEIGHT_CORNER * oldImage[bot][left] +
-                                 WEIGHT_CORNER * oldImage[top][left] +
-                                 WEIGHT_SIDE * oldImage[j][right] +
-                                 WEIGHT_CORNER * oldImage[bot][right] +
-                                 WEIGHT_CORNER * oldImage[top][right]) /
-                                WEIGHT_CENTER_TOTAL;
-                        newImage[j][i++] = pixel;
-                        check += pixel;
+            case 4:
+                left = i - 1;
+                right = i + 1;
+                pixel = (WEIGHT_CENTRE * oldImage[j][i] +
+                         WEIGHT_SIDE * oldImage[bot][i] +
+                         WEIGHT_SIDE * oldImage[top][i] +
+                         WEIGHT_SIDE * oldImage[j][left] +
+                         WEIGHT_CORNER * oldImage[bot][left] +
+                         WEIGHT_CORNER * oldImage[top][left] +
+                         WEIGHT_SIDE * oldImage[j][right] +
+                         WEIGHT_CORNER * oldImage[bot][right] +
+                         WEIGHT_CORNER * oldImage[top][right]) /
+                        WEIGHT_CENTER_TOTAL;
+                newImage[j][i++] = pixel;
+                check += pixel;
 
-                    case 3:
-                        left = i - 1;
-                        right = i + 1;
-                        pixel = (WEIGHT_CENTRE * oldImage[j][i] +
-                                 WEIGHT_SIDE * oldImage[bot][i] +
-                                 WEIGHT_SIDE * oldImage[top][i] +
-                                 WEIGHT_SIDE * oldImage[j][left] +
-                                 WEIGHT_CORNER * oldImage[bot][left] +
-                                 WEIGHT_CORNER * oldImage[top][left] +
-                                 WEIGHT_SIDE * oldImage[j][right] +
-                                 WEIGHT_CORNER * oldImage[bot][right] +
-                                 WEIGHT_CORNER * oldImage[top][right]) /
-                                WEIGHT_CENTER_TOTAL;
-                        newImage[j][i++] = pixel;
-                        check += pixel;
+            case 3:
+                left = i - 1;
+                right = i + 1;
+                pixel = (WEIGHT_CENTRE * oldImage[j][i] +
+                         WEIGHT_SIDE * oldImage[bot][i] +
+                         WEIGHT_SIDE * oldImage[top][i] +
+                         WEIGHT_SIDE * oldImage[j][left] +
+                         WEIGHT_CORNER * oldImage[bot][left] +
+                         WEIGHT_CORNER * oldImage[top][left] +
+                         WEIGHT_SIDE * oldImage[j][right] +
+                         WEIGHT_CORNER * oldImage[bot][right] +
+                         WEIGHT_CORNER * oldImage[top][right]) /
+                        WEIGHT_CENTER_TOTAL;
+                newImage[j][i++] = pixel;
+                check += pixel;
 
-                    case 2:
-                        left = i - 1;
-                        right = i + 1;
-                        pixel = (WEIGHT_CENTRE * oldImage[j][i] +
-                                 WEIGHT_SIDE * oldImage[bot][i] +
-                                 WEIGHT_SIDE * oldImage[top][i] +
-                                 WEIGHT_SIDE * oldImage[j][left] +
-                                 WEIGHT_CORNER * oldImage[bot][left] +
-                                 WEIGHT_CORNER * oldImage[top][left] +
-                                 WEIGHT_SIDE * oldImage[j][right] +
-                                 WEIGHT_CORNER * oldImage[bot][right] +
-                                 WEIGHT_CORNER * oldImage[top][right]) /
-                                WEIGHT_CENTER_TOTAL;
-                        newImage[j][i++] = pixel;
-                        check += pixel;
+            case 2:
+                left = i - 1;
+                right = i + 1;
+                pixel = (WEIGHT_CENTRE * oldImage[j][i] +
+                         WEIGHT_SIDE * oldImage[bot][i] +
+                         WEIGHT_SIDE * oldImage[top][i] +
+                         WEIGHT_SIDE * oldImage[j][left] +
+                         WEIGHT_CORNER * oldImage[bot][left] +
+                         WEIGHT_CORNER * oldImage[top][left] +
+                         WEIGHT_SIDE * oldImage[j][right] +
+                         WEIGHT_CORNER * oldImage[bot][right] +
+                         WEIGHT_CORNER * oldImage[top][right]) /
+                        WEIGHT_CENTER_TOTAL;
+                newImage[j][i++] = pixel;
+                check += pixel;
 
-                    case 1:
-                        left = i - 1;
-                        right = i + 1;
-                        pixel = (WEIGHT_CENTRE * oldImage[j][i] +
-                                 WEIGHT_SIDE * oldImage[bot][i] +
-                                 WEIGHT_SIDE * oldImage[top][i] +
-                                 WEIGHT_SIDE * oldImage[j][left] +
-                                 WEIGHT_CORNER * oldImage[bot][left] +
-                                 WEIGHT_CORNER * oldImage[top][left] +
-                                 WEIGHT_SIDE * oldImage[j][right] +
-                                 WEIGHT_CORNER * oldImage[bot][right] +
-                                 WEIGHT_CORNER * oldImage[top][right]) /
-                                WEIGHT_CENTER_TOTAL;
-                        newImage[j][i++] = pixel;
-                        check += pixel;
+            case 1:
+                left = i - 1;
+                right = i + 1;
+                pixel = (WEIGHT_CENTRE * oldImage[j][i] +
+                         WEIGHT_SIDE * oldImage[bot][i] +
+                         WEIGHT_SIDE * oldImage[top][i] +
+                         WEIGHT_SIDE * oldImage[j][left] +
+                         WEIGHT_CORNER * oldImage[bot][left] +
+                         WEIGHT_CORNER * oldImage[top][left] +
+                         WEIGHT_SIDE * oldImage[j][right] +
+                         WEIGHT_CORNER * oldImage[bot][right] +
+                         WEIGHT_CORNER * oldImage[top][right]) /
+                        WEIGHT_CENTER_TOTAL;
+                newImage[j][i++] = pixel;
+                check += pixel;
 
-                } while (--n > 0);
+            } while (--n > 0);
         }
 
         // right pixel
@@ -2192,112 +2402,114 @@ static inline long mask15(long oldImage[N][N], long newImage[N][N], int rows, in
     // bot row
     i = 1;
     n = n_precalculate;
-    switch ((cols - 2) & 7) {
-        case 0:
-            do {
-                left = i - 1;
-                right = i + 1;
-                pixel = (WEIGHT_CENTRE * oldImage[j][i] +
-                         WEIGHT_SIDE * oldImage[top][i] +
-                         WEIGHT_SIDE * oldImage[j][left] +
-                         WEIGHT_CORNER * oldImage[top][left] +
-                         WEIGHT_SIDE * oldImage[j][right] +
-                         WEIGHT_CORNER * oldImage[top][right]) /
-                        WEIGHT_EDGE_TOTAL;
-                newImage[j][i++] = pixel;
-                check += pixel;
+    switch ((cols - 2) & 7)
+    {
+    case 0:
+        do
+        {
+            left = i - 1;
+            right = i + 1;
+            pixel = (WEIGHT_CENTRE * oldImage[j][i] +
+                     WEIGHT_SIDE * oldImage[top][i] +
+                     WEIGHT_SIDE * oldImage[j][left] +
+                     WEIGHT_CORNER * oldImage[top][left] +
+                     WEIGHT_SIDE * oldImage[j][right] +
+                     WEIGHT_CORNER * oldImage[top][right]) /
+                    WEIGHT_EDGE_TOTAL;
+            newImage[j][i++] = pixel;
+            check += pixel;
 
-                case 7:
-                    left = i - 1;
-                    right = i + 1;
-                    pixel = (WEIGHT_CENTRE * oldImage[j][i] +
-                             WEIGHT_SIDE * oldImage[top][i] +
-                             WEIGHT_SIDE * oldImage[j][left] +
-                             WEIGHT_CORNER * oldImage[top][left] +
-                             WEIGHT_SIDE * oldImage[j][right] +
-                             WEIGHT_CORNER * oldImage[top][right]) /
-                            WEIGHT_EDGE_TOTAL;
-                    newImage[j][i++] = pixel;
-                    check += pixel;
+        case 7:
+            left = i - 1;
+            right = i + 1;
+            pixel = (WEIGHT_CENTRE * oldImage[j][i] +
+                     WEIGHT_SIDE * oldImage[top][i] +
+                     WEIGHT_SIDE * oldImage[j][left] +
+                     WEIGHT_CORNER * oldImage[top][left] +
+                     WEIGHT_SIDE * oldImage[j][right] +
+                     WEIGHT_CORNER * oldImage[top][right]) /
+                    WEIGHT_EDGE_TOTAL;
+            newImage[j][i++] = pixel;
+            check += pixel;
 
-                case 6:
-                    left = i - 1;
-                    right = i + 1;
-                    pixel = (WEIGHT_CENTRE * oldImage[j][i] +
-                             WEIGHT_SIDE * oldImage[top][i] +
-                             WEIGHT_SIDE * oldImage[j][left] +
-                             WEIGHT_CORNER * oldImage[top][left] +
-                             WEIGHT_SIDE * oldImage[j][right] +
-                             WEIGHT_CORNER * oldImage[top][right]) /
-                            WEIGHT_EDGE_TOTAL;
-                    newImage[j][i++] = pixel;
-                    check += pixel;
+        case 6:
+            left = i - 1;
+            right = i + 1;
+            pixel = (WEIGHT_CENTRE * oldImage[j][i] +
+                     WEIGHT_SIDE * oldImage[top][i] +
+                     WEIGHT_SIDE * oldImage[j][left] +
+                     WEIGHT_CORNER * oldImage[top][left] +
+                     WEIGHT_SIDE * oldImage[j][right] +
+                     WEIGHT_CORNER * oldImage[top][right]) /
+                    WEIGHT_EDGE_TOTAL;
+            newImage[j][i++] = pixel;
+            check += pixel;
 
-                case 5:
-                    left = i - 1;
-                    right = i + 1;
-                    pixel = (WEIGHT_CENTRE * oldImage[j][i] +
-                             WEIGHT_SIDE * oldImage[top][i] +
-                             WEIGHT_SIDE * oldImage[j][left] +
-                             WEIGHT_CORNER * oldImage[top][left] +
-                             WEIGHT_SIDE * oldImage[j][right] +
-                             WEIGHT_CORNER * oldImage[top][right]) /
-                            WEIGHT_EDGE_TOTAL;
-                    newImage[j][i++] = pixel;
-                    check += pixel;
+        case 5:
+            left = i - 1;
+            right = i + 1;
+            pixel = (WEIGHT_CENTRE * oldImage[j][i] +
+                     WEIGHT_SIDE * oldImage[top][i] +
+                     WEIGHT_SIDE * oldImage[j][left] +
+                     WEIGHT_CORNER * oldImage[top][left] +
+                     WEIGHT_SIDE * oldImage[j][right] +
+                     WEIGHT_CORNER * oldImage[top][right]) /
+                    WEIGHT_EDGE_TOTAL;
+            newImage[j][i++] = pixel;
+            check += pixel;
 
-                case 4:
-                    left = i - 1;
-                    right = i + 1;
-                    pixel = (WEIGHT_CENTRE * oldImage[j][i] +
-                             WEIGHT_SIDE * oldImage[top][i] +
-                             WEIGHT_SIDE * oldImage[j][left] +
-                             WEIGHT_CORNER * oldImage[top][left] +
-                             WEIGHT_SIDE * oldImage[j][right] +
-                             WEIGHT_CORNER * oldImage[top][right]) /
-                            WEIGHT_EDGE_TOTAL;
-                    newImage[j][i++] = pixel;
-                    check += pixel;
+        case 4:
+            left = i - 1;
+            right = i + 1;
+            pixel = (WEIGHT_CENTRE * oldImage[j][i] +
+                     WEIGHT_SIDE * oldImage[top][i] +
+                     WEIGHT_SIDE * oldImage[j][left] +
+                     WEIGHT_CORNER * oldImage[top][left] +
+                     WEIGHT_SIDE * oldImage[j][right] +
+                     WEIGHT_CORNER * oldImage[top][right]) /
+                    WEIGHT_EDGE_TOTAL;
+            newImage[j][i++] = pixel;
+            check += pixel;
 
-                case 3:
-                    left = i - 1;
-                    right = i + 1;
-                    pixel = (WEIGHT_CENTRE * oldImage[j][i] +
-                             WEIGHT_SIDE * oldImage[top][i] +
-                             WEIGHT_SIDE * oldImage[j][left] +
-                             WEIGHT_CORNER * oldImage[top][left] +
-                             WEIGHT_SIDE * oldImage[j][right] +
-                             WEIGHT_CORNER * oldImage[top][right]) /
-                            WEIGHT_EDGE_TOTAL;
-                    newImage[j][i++] = pixel;
-                    check += pixel;
+        case 3:
+            left = i - 1;
+            right = i + 1;
+            pixel = (WEIGHT_CENTRE * oldImage[j][i] +
+                     WEIGHT_SIDE * oldImage[top][i] +
+                     WEIGHT_SIDE * oldImage[j][left] +
+                     WEIGHT_CORNER * oldImage[top][left] +
+                     WEIGHT_SIDE * oldImage[j][right] +
+                     WEIGHT_CORNER * oldImage[top][right]) /
+                    WEIGHT_EDGE_TOTAL;
+            newImage[j][i++] = pixel;
+            check += pixel;
 
-                case 2:
-                    left = i - 1;
-                right = i + 1;
-                pixel = (WEIGHT_CENTRE * oldImage[j][i] +
-                         WEIGHT_SIDE * oldImage[top][i] +
-                         WEIGHT_SIDE * oldImage[j][left] +
-                         WEIGHT_CORNER * oldImage[top][left] +
-                         WEIGHT_SIDE * oldImage[j][right] +
-                         WEIGHT_CORNER * oldImage[top][right]) /
-                        WEIGHT_EDGE_TOTAL;
-                newImage[j][i++] = pixel;
-                check += pixel;
-                case 1:
-                    left = i - 1;
-                    right = i + 1;
-                    pixel = (WEIGHT_CENTRE * oldImage[j][i] +
-                             WEIGHT_SIDE * oldImage[top][i] +
-                             WEIGHT_SIDE * oldImage[j][left] +
-                             WEIGHT_CORNER * oldImage[top][left] +
-                             WEIGHT_SIDE * oldImage[j][right] +
-                             WEIGHT_CORNER * oldImage[top][right]) /
-                            WEIGHT_EDGE_TOTAL;
-                    newImage[j][i++] = pixel;
-                    check += pixel;
+        case 2:
+            left = i - 1;
+            right = i + 1;
+            pixel = (WEIGHT_CENTRE * oldImage[j][i] +
+                     WEIGHT_SIDE * oldImage[top][i] +
+                     WEIGHT_SIDE * oldImage[j][left] +
+                     WEIGHT_CORNER * oldImage[top][left] +
+                     WEIGHT_SIDE * oldImage[j][right] +
+                     WEIGHT_CORNER * oldImage[top][right]) /
+                    WEIGHT_EDGE_TOTAL;
+            newImage[j][i++] = pixel;
+            check += pixel;
+        case 1:
+            left = i - 1;
+            right = i + 1;
+            pixel = (WEIGHT_CENTRE * oldImage[j][i] +
+                     WEIGHT_SIDE * oldImage[top][i] +
+                     WEIGHT_SIDE * oldImage[j][left] +
+                     WEIGHT_CORNER * oldImage[top][left] +
+                     WEIGHT_SIDE * oldImage[j][right] +
+                     WEIGHT_CORNER * oldImage[top][right]) /
+                    WEIGHT_EDGE_TOTAL;
+            newImage[j][i++] = pixel;
+            check += pixel;
 
-            } while (--n > 0);
+        } while (--n > 0);
     }
     // bot right pixel
     pixel = (WEIGHT_CENTRE * oldImage[j][cols - 1] +
@@ -2315,19 +2527,21 @@ static inline long mask15(long oldImage[N][N], long newImage[N][N], int rows, in
 
 // ====================== Multithreaded Implementation =========================
 
-struct params {
+struct params
+{
     long (*oldImage)[N];
     long (*newImage)[N];
     int rows;
     int cols;
-    long* check;
+    int curRow;
+    long *check;
 };
 
-void* blurTopRow(void* params);
-void* blurMiddleRows(void* params);
-void* blurBottomRow(void* params);
+void *blurTopRow(void *params);
+void *blurMiddleRows(void *params);
+void *blurBottomRow(void *params);
 
-pthread_mutex_t check_mlock; 
+pthread_mutex_t check_mlock;
 
 /**
  * MULTITHREADED
@@ -2338,132 +2552,46 @@ pthread_mutex_t check_mlock;
  * ALL CALCULATIONS IN ONE LINE
  *
  */
-static inline long mask16(long oldImage[N][N], long newImage[N][N], int rows, int cols) {
-    register int i, j;
-    register int top, bot, left, right;
+static inline long mask16(long oldImage[N][N], long newImage[N][N], int rows, int cols)
+{
     long check = 0;
     register long pixel;
 
-    if (pthread_mutex_init(&check_mlock, NULL) != 0) {
+    if (pthread_mutex_init(&check_mlock, NULL) != 0)
+    {
         printf("failed to initialize check_mlock");
         return -1;
     }
 
-    
+    // TOP ROW ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     pthread_t threadTop;
-    struct params paramsTop = {oldImage, newImage, rows, cols, &check};
-    pthread_create(&threadTop, NULL, blurTopRow, (void*) &paramsTop);
+    struct params paramsTop = {oldImage, newImage, rows, cols, 0, &check};
+    pthread_create(&threadTop, NULL, blurTopRow, (void *)&paramsTop);
 
     // MIDDLE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    for (j = 1; j < rows - 1; j++) {
-        top = j - 1; 
-        bot = j + 1;
-
-        // left pixel; center, bot, right, bot right, top, top right
-        pixel = (WEIGHT_CENTRE * oldImage[j][0] +
-                 WEIGHT_SIDE * oldImage[bot][0] +
-                 WEIGHT_SIDE * oldImage[j][1] +
-                 WEIGHT_CORNER * oldImage[bot][1] +
-                 WEIGHT_SIDE * oldImage[top][0] +
-                 WEIGHT_CORNER * oldImage[top][1]) /
-                WEIGHT_EDGE_TOTAL;
-
-        // Produce the final result
-        newImage[j][0] = pixel;
-        check += pixel;
-
-        for (i = 1; i < cols - 1; i++) {
-            left = i - 1;
-            right = i + 1;
-
-            // all 9
-            pixel = (WEIGHT_CENTRE * oldImage[j][i] +
-                     WEIGHT_SIDE * oldImage[bot][i] +
-                     WEIGHT_SIDE * oldImage[top][i] +
-                     WEIGHT_SIDE * oldImage[j][left] +
-                     WEIGHT_CORNER * oldImage[bot][left] +
-                     WEIGHT_CORNER * oldImage[top][left] +
-                     WEIGHT_SIDE * oldImage[j][right] +
-                     WEIGHT_CORNER * oldImage[bot][right] +
-                     WEIGHT_CORNER * oldImage[top][right]) /
-                    WEIGHT_CENTER_TOTAL;
-
-            // Produce the final result
-            newImage[j][i] = pixel;
-            check += pixel;
-        }
-
-        // right pixel
-        pixel = (WEIGHT_CENTRE * oldImage[j][cols - 1] +
-                 WEIGHT_SIDE * oldImage[bot][cols - 1] +
-                 WEIGHT_SIDE * oldImage[j][cols - 2] +
-                 WEIGHT_CORNER * oldImage[bot][cols - 2] +
-                 WEIGHT_SIDE * oldImage[top][cols - 1] +
-                 WEIGHT_CORNER * oldImage[top][cols - 2]) /
-                WEIGHT_EDGE_TOTAL;
-
-        // Produce the final result
-        newImage[j][cols - 1] = pixel;
-        check += pixel;
+    pthread_t threadMiddleArr[rows - 2];
+    struct params paramsMiddleArr[rows - 2];
+    for (j = 1; j < rows - 1; j++)
+    {
+        paramsMiddleArr[j - 1] = {oldImage, newImage, rows, cols, j, &check};
+        pthread_create(&threadMiddleArr[j], NULL, blurMiddleRows, (void *)&paramsMiddleArr[j - 1]);
     }
 
     // BOW ROW ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    top = rows - 2;
-
-    // bot left pixel; center, right, top, top right
-    pixel = (WEIGHT_CENTRE * oldImage[j][0] +
-             WEIGHT_SIDE * oldImage[j][1] +
-             WEIGHT_SIDE * oldImage[top][0] +
-             WEIGHT_CORNER * oldImage[top][1]) /
-            WEIGHT_CORNER_TOTAL;
-
-    // Produce the final result
-    newImage[j][0] = pixel;
-    check += pixel;
-
-    // bot row
-    for (i = 1; i < cols - 1; i++) {
-        left = i - 1;
-        right = i + 1;
-
-        // all 6
-        pixel = (WEIGHT_CENTRE * oldImage[j][i] +
-                 WEIGHT_SIDE * oldImage[top][i] +
-                 WEIGHT_SIDE * oldImage[j][left] +
-                 WEIGHT_CORNER * oldImage[top][left] +
-                 WEIGHT_SIDE * oldImage[j][right] +
-                 WEIGHT_CORNER * oldImage[top][right]) /
-                WEIGHT_EDGE_TOTAL;
-
-        // Produce the final result
-        newImage[j][i] = pixel;
-        check += pixel;
-    }
-
-    // bot right pixel
-    pixel = (WEIGHT_CENTRE * oldImage[j][cols - 1] +
-             WEIGHT_SIDE * oldImage[j][cols - 2] +
-             WEIGHT_SIDE * oldImage[top][cols - 1] +
-             WEIGHT_CORNER * oldImage[top][cols - 2]) /
-            WEIGHT_CORNER_TOTAL;
-
-    // Produce the final result
-    newImage[j][i] = pixel;
-    check += pixel;
+    
 
     return check;
 }
 
-void* blurTopRow(void* params_v) {
+void *blurTopRow(void *params_v)
+{
     register int i, j;
     register int bot, left, right;
     register long tempCheck = 0;
     register long pixel;
 
-    struct params* params_ptr = (struct params*) params_v;
+    struct params *params_ptr = (struct params *)params_v;
 
-    // TOP ROW ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // top left pixel; center, bot, right, bot right
     pixel = (WEIGHT_CENTRE * params_ptr->oldImage[0][0] +
              WEIGHT_SIDE * params_ptr->oldImage[1][0] +
@@ -2478,7 +2606,8 @@ void* blurTopRow(void* params_v) {
     // top row
     bot = 1;
     j = 0;
-    for (i = 1; i < params_ptr->cols - 1; i++) {
+    for (i = 1; i < params_ptr->cols - 1; i++)
+    {
         left = i - 1;
         right = i + 1;
 
@@ -2506,7 +2635,6 @@ void* blurTopRow(void* params_v) {
     // Produce the final result
     params_ptr->newImage[0][params_ptr->cols - 1] = pixel;
 
-    //lock
     pthread_mutex_lock(&check_mlock);
     *params_ptr->check += tempCheck + pixel;
     pthread_mutex_unlock(&check_mlock);
@@ -2514,10 +2642,112 @@ void* blurTopRow(void* params_v) {
     return 0;
 }
 
-void* blurMiddleRows(void* params);
-void* blurBottomRow(void* params);
+void *blurMiddleRows(void *params)
+{
+    struct params *params_ptr = (struct params *)params_v;
 
+    register int top = params_ptr->curRow - 1;
+    register int bot = params_ptr->curRow + 1;
+    register long tempCheck = 0;
 
-long mask(long oldImage[N][N], long newImage[N][N], int rows, int cols) {
+    // left pixel; center, bot, right, bot right, top, top right
+    pixel = (WEIGHT_CENTRE * params_ptr->oldImage[params_ptr->curRow][0] +
+             WEIGHT_SIDE * params_ptr->oldImage[bot][0] +
+             WEIGHT_SIDE * params_ptr->oldImage[params_ptr->curRow][1] +
+             WEIGHT_CORNER * params_ptr->oldImage[bot][1] +
+             WEIGHT_SIDE * params_ptr->oldImage[top][0] +
+             WEIGHT_CORNER * params_ptr->oldImage[top][1]) /
+            WEIGHT_EDGE_TOTAL;
+
+    // Produce the final result
+    params_ptr->newImage[params_ptr->curRow][0] = pixel;
+    tempCheck += pixel;
+
+    for (int i = 1; i < params_ptr->cols - 1; i++)
+    {
+        register int left = i - 1;
+        register int right = i + 1;
+
+        // all 9
+        pixel = (WEIGHT_CENTRE * params_ptr->oldImage[params_ptr->curRow][i] +
+                 WEIGHT_SIDE * params_ptr->oldImage[bot][i] +
+                 WEIGHT_SIDE * params_ptr->oldImage[top][i] +
+                 WEIGHT_SIDE * params_ptr->oldImage[params_ptr->curRow][left] +
+                 WEIGHT_CORNER * params_ptr->oldImage[bot][left] +
+                 WEIGHT_CORNER * params_ptr->oldImage[top][left] +
+                 WEIGHT_SIDE * params_ptr->oldImage[params_ptr->curRow][right] +
+                 WEIGHT_CORNER * params_ptr->oldImage[bot][right] +
+                 WEIGHT_CORNER * params_ptr->oldImage[top][right]) /
+                WEIGHT_CENTER_TOTAL;
+
+        // Produce the final result
+        params_ptr->newImage[params_ptr->curRow][i] = pixel;
+        tempCheck += pixel;
+    }
+
+    // right pixel
+    pixel = (WEIGHT_CENTRE * params_ptr->oldImage[params_ptr->curRow][params_ptr->cols - 1] +
+             WEIGHT_SIDE * params_ptr->oldImage[bot][params_ptr->cols - 1] +
+             WEIGHT_SIDE * params_ptr->oldImage[params_ptr->curRow][params_ptr->cols - 2] +
+             WEIGHT_CORNER * params_ptr->oldImage[bot][params_ptr->cols - 2] +
+             WEIGHT_SIDE * params_ptr->oldImage[top][params_ptr->cols - 1] +
+             WEIGHT_CORNER * params_ptr->oldImage[top][params_ptr->cols - 2]) /
+            WEIGHT_EDGE_TOTAL;
+
+    // Produce the final result
+    params_ptr->newImage[params_ptr->curRow][cols - 1] = pixel;
+
+    pthread_mutex_lock(&check_mlock);
+    *params_ptr->check += tempCheck + pixel;
+    pthread_mutex_unlock(&check_mlock);
+}
+void *blurBottomRow(void *params) {
+    top = rows - 2;
+
+    // bot left pixel; center, right, top, top right
+    pixel = (WEIGHT_CENTRE * oldImage[j][0] +
+             WEIGHT_SIDE * oldImage[j][1] +
+             WEIGHT_SIDE * oldImage[top][0] +
+             WEIGHT_CORNER * oldImage[top][1]) /
+            WEIGHT_CORNER_TOTAL;
+
+    // Produce the final result
+    newImage[j][0] = pixel;
+    check += pixel;
+
+    // bot row
+    for (i = 1; i < cols - 1; i++)
+    {
+        left = i - 1;
+        right = i + 1;
+
+        // all 6
+        pixel = (WEIGHT_CENTRE * oldImage[j][i] +
+                 WEIGHT_SIDE * oldImage[top][i] +
+                 WEIGHT_SIDE * oldImage[j][left] +
+                 WEIGHT_CORNER * oldImage[top][left] +
+                 WEIGHT_SIDE * oldImage[j][right] +
+                 WEIGHT_CORNER * oldImage[top][right]) /
+                WEIGHT_EDGE_TOTAL;
+
+        // Produce the final result
+        newImage[j][i] = pixel;
+        check += pixel;
+    }
+
+    // bot right pixel
+    pixel = (WEIGHT_CENTRE * oldImage[j][cols - 1] +
+             WEIGHT_SIDE * oldImage[j][cols - 2] +
+             WEIGHT_SIDE * oldImage[top][cols - 1] +
+             WEIGHT_CORNER * oldImage[top][cols - 2]) /
+            WEIGHT_CORNER_TOTAL;
+
+    // Produce the final result
+    newImage[j][i] = pixel;
+    check += pixel;
+}
+
+long mask(long oldImage[N][N], long newImage[N][N], int rows, int cols)
+{
     return MASK_VERSION(oldImage, newImage, rows, cols);
 }
