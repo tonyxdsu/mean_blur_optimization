@@ -2327,6 +2327,8 @@ void* blurTopRow(void* params);
 void* blurMiddleRows(void* params);
 void* blurBottomRow(void* params);
 
+pthread_mutex_t check_mlock; 
+
 /**
  * MULTITHREADED
  * 
@@ -2341,11 +2343,16 @@ static inline long mask16(long oldImage[N][N], long newImage[N][N], int rows, in
     register int top, bot, left, right;
     long check = 0;
     register long pixel;
+
+    if (pthread_mutex_init(&check_mlock, NULL) != 0) {
+        printf("failed to initialize check_mlock");
+        return -1;
+    }
+
     
     pthread_t threadTop;
     struct params paramsTop = {oldImage, newImage, rows, cols, &check};
     pthread_create(&threadTop, NULL, blurTopRow, (void*) &paramsTop);
-    pthread_join(threadTop, NULL);
 
     // MIDDLE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -2453,9 +2460,10 @@ void* blurTopRow(void* params_v) {
     register int bot, left, right;
     register long tempCheck = 0;
     register long pixel;
+
     struct params* params_ptr = (struct params*) params_v;
 
-// TOP ROW ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // TOP ROW ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // top left pixel; center, bot, right, bot right
     pixel = (WEIGHT_CENTRE * params_ptr->oldImage[0][0] +
              WEIGHT_SIDE * params_ptr->oldImage[1][0] +
@@ -2499,12 +2507,15 @@ void* blurTopRow(void* params_v) {
     params_ptr->newImage[0][params_ptr->cols - 1] = pixel;
 
     //lock
+    pthread_mutex_lock(&check_mlock);
     *params_ptr->check += tempCheck + pixel;
+    pthread_mutex_unlock(&check_mlock);
+
     return 0;
 }
+
 void* blurMiddleRows(void* params);
 void* blurBottomRow(void* params);
-
 
 
 long mask(long oldImage[N][N], long newImage[N][N], int rows, int cols) {
