@@ -2534,14 +2534,13 @@ struct params
     int rows;
     int cols;
     int curRow;
-    long *check;
 };
 
 void *blurTopRow(void *params);
 void *blurMiddleRows(void *params);
 void *blurBottomRow(void *params);
 
-pthread_mutex_t check_mlock;
+// pthread_mutex_t check_mlock;
 
 /**
  * MULTITHREADED
@@ -2554,31 +2553,47 @@ pthread_mutex_t check_mlock;
  */
 static inline long mask16(long oldImage[N][N], long newImage[N][N], int rows, int cols)
 {
-    long check = 0;
-    register long pixel;
+    register long check = 0;
 
-    if (pthread_mutex_init(&check_mlock, NULL) != 0)
-    {
-        printf("failed to initialize check_mlock");
-        return -1;
-    }
+    // if (pthread_mutex_init(&check_mlock, NULL) != 0)
+    // {
+    //     printf("failed to initialize check_mlock");
+    //     return -1;
+    // }
 
     // TOP ROW ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     pthread_t threadTop;
-    struct params paramsTop = {oldImage, newImage, rows, cols, 0, &check};
-    pthread_create(&threadTop, NULL, blurTopRow, (void *)&paramsTop);
+    struct params params = {oldImage, newImage, rows, cols, 0};
+    pthread_create(&threadTop, NULL, blurTopRow, (void *)&params);
 
     // MIDDLE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     pthread_t threadMiddleArr[rows - 2];
     struct params paramsMiddleArr[rows - 2];
-    for (j = 1; j < rows - 1; j++)
+    for (register int j = 1; j < rows - 1; j++)
     {
-        paramsMiddleArr[j - 1] = {oldImage, newImage, rows, cols, j, &check};
-        pthread_create(&threadMiddleArr[j], NULL, blurMiddleRows, (void *)&paramsMiddleArr[j - 1]);
+        paramsMiddleArr[j - 1] = (struct params) {oldImage, newImage, rows, cols, j};
+        pthread_create(&threadMiddleArr[j - 1], NULL, blurMiddleRows, (void *)&paramsMiddleArr[j - 1]);
     }
 
     // BOW ROW ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    pthread_t threadBot;
+    pthread_create(&threadBot, NULL, blurBottomRow, (void *)&params);
+
     
+    // Wait for all threads to finish
+    void* retval = 0;
+
+    pthread_join(threadBot, (void**) &retval);
+    check += (long) retval;
+
+    for (register int t = 0; t < rows - 2; t++)
+    {
+        pthread_join(threadMiddleArr[t], (void**) &retval);
+        check += (long) retval;
+    }
+
+    pthread_join(threadTop, (void**) &retval);
+    check += (long) retval;
 
     return check;
 }
@@ -2635,20 +2650,23 @@ void *blurTopRow(void *params_v)
     // Produce the final result
     params_ptr->newImage[0][params_ptr->cols - 1] = pixel;
 
-    pthread_mutex_lock(&check_mlock);
-    *params_ptr->check += tempCheck + pixel;
-    pthread_mutex_unlock(&check_mlock);
+    // pthread_mutex_lock(&check_mlock);
+    // *params_ptr->check += tempCheck + pixel;
+    // pthread_mutex_unlock(&check_mlock);
+    tempCheck += pixel;
 
-    return 0;
+    return (void*) tempCheck;
 }
 
-void *blurMiddleRows(void *params)
+void *blurMiddleRows(void *params_v)
 {
     struct params *params_ptr = (struct params *)params_v;
 
     register int top = params_ptr->curRow - 1;
     register int bot = params_ptr->curRow + 1;
     register long tempCheck = 0;
+    register long pixel;
+
 
     // left pixel; center, bot, right, bot right, top, top right
     pixel = (WEIGHT_CENTRE * params_ptr->oldImage[params_ptr->curRow][0] +
@@ -2695,56 +2713,71 @@ void *blurMiddleRows(void *params)
             WEIGHT_EDGE_TOTAL;
 
     // Produce the final result
-    params_ptr->newImage[params_ptr->curRow][cols - 1] = pixel;
+    params_ptr->newImage[params_ptr->curRow][params_ptr->cols - 1] = pixel;
 
-    pthread_mutex_lock(&check_mlock);
-    *params_ptr->check += tempCheck + pixel;
-    pthread_mutex_unlock(&check_mlock);
+    // pthread_mutex_lock(&check_mlock);
+    // *params_ptr->check += tempCheck + pixel;
+    // pthread_mutex_unlock(&check_mlock);
+    tempCheck += pixel;
+
+    return (void*) tempCheck;
 }
-void *blurBottomRow(void *params) {
-    top = rows - 2;
+void *blurBottomRow(void *params_v) 
+{
+    struct params *params_ptr = (struct params *)params_v;
+    register int top = params_ptr->rows - 2;
+    register int j   = params_ptr->rows - 1;
+    register long tempCheck = 0;
+    register long pixel;
+
 
     // bot left pixel; center, right, top, top right
-    pixel = (WEIGHT_CENTRE * oldImage[j][0] +
-             WEIGHT_SIDE * oldImage[j][1] +
-             WEIGHT_SIDE * oldImage[top][0] +
-             WEIGHT_CORNER * oldImage[top][1]) /
+    pixel = (WEIGHT_CENTRE * params_ptr->oldImage[j][0] +
+             WEIGHT_SIDE * params_ptr->oldImage[j][1] +
+             WEIGHT_SIDE * params_ptr->oldImage[top][0] +
+             WEIGHT_CORNER * params_ptr->oldImage[top][1]) /
             WEIGHT_CORNER_TOTAL;
 
     // Produce the final result
-    newImage[j][0] = pixel;
-    check += pixel;
+    params_ptr->newImage[j][0] = pixel;
+    tempCheck += pixel;
 
-    // bot row
-    for (i = 1; i < cols - 1; i++)
+    for (register int i = 1; i < params_ptr->cols - 1; i++)
     {
-        left = i - 1;
-        right = i + 1;
+        register int left = i - 1;
+        register int right = i + 1;
 
         // all 6
-        pixel = (WEIGHT_CENTRE * oldImage[j][i] +
-                 WEIGHT_SIDE * oldImage[top][i] +
-                 WEIGHT_SIDE * oldImage[j][left] +
-                 WEIGHT_CORNER * oldImage[top][left] +
-                 WEIGHT_SIDE * oldImage[j][right] +
-                 WEIGHT_CORNER * oldImage[top][right]) /
+        pixel = (WEIGHT_CENTRE * params_ptr->oldImage[j][i] +
+                 WEIGHT_SIDE * params_ptr->oldImage[top][i] +
+                 WEIGHT_SIDE * params_ptr->oldImage[j][left] +
+                 WEIGHT_CORNER * params_ptr->oldImage[top][left] +
+                 WEIGHT_SIDE * params_ptr->oldImage[j][right] +
+                 WEIGHT_CORNER * params_ptr->oldImage[top][right]) /
                 WEIGHT_EDGE_TOTAL;
 
         // Produce the final result
-        newImage[j][i] = pixel;
-        check += pixel;
+        params_ptr->newImage[j][i] = pixel;
+        tempCheck += pixel;
     }
 
     // bot right pixel
-    pixel = (WEIGHT_CENTRE * oldImage[j][cols - 1] +
-             WEIGHT_SIDE * oldImage[j][cols - 2] +
-             WEIGHT_SIDE * oldImage[top][cols - 1] +
-             WEIGHT_CORNER * oldImage[top][cols - 2]) /
+    pixel = (WEIGHT_CENTRE * params_ptr->oldImage[j][params_ptr->cols - 1] +
+             WEIGHT_SIDE * params_ptr->oldImage[j][params_ptr->cols - 2] +
+             WEIGHT_SIDE * params_ptr->oldImage[top][params_ptr->cols - 1] +
+             WEIGHT_CORNER * params_ptr->oldImage[top][params_ptr->cols - 2]) /
             WEIGHT_CORNER_TOTAL;
 
     // Produce the final result
-    newImage[j][i] = pixel;
-    check += pixel;
+    params_ptr->newImage[j][params_ptr->cols - 1] = pixel;
+
+
+    // pthread_mutex_lock(&check_mlock);
+    // *params_ptr->check += tempCheck + pixel;
+    // pthread_mutex_unlock(&check_mlock);
+    tempCheck += pixel;
+
+    return (void*) tempCheck;
 }
 
 long mask(long oldImage[N][N], long newImage[N][N], int rows, int cols)
