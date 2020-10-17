@@ -18,7 +18,7 @@ TODO:
 * another image access pattern: working down the image going through cache line size number of bytes worth of pixels at a time. This should reduce cache misses by 3 times for the entire image, I have some ideas why my implemention doesn't work even though I think it should (mask7, mask8).
 
 ---
-## Run this program by:
+## Run this program:
 
 1. run **make** on a pthread supported system
-2. ./timemask <src_image.pgm> <number of trials> <output_image.pgm>
+2. ./timemask <src_image.pgm> <number_of_trials> <output_image.pgm>
