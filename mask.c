@@ -2549,7 +2549,11 @@ void *blurBottomRow(void *params);
  * NO IFS
  * NO WEIGHT VARIABLE
  * ALL CALCULATIONS IN ONE LINE
- *
+ * 
+ * With rows number of threads:
+ * The optimized implementation took:
+        Best   :       187877 usec (ratio: 0.157659)
+        Average:       187877 usec (ratio: 0.157659)
  */
 static inline long mask16(long oldImage[N][N], long newImage[N][N], int rows, int cols)
 {
