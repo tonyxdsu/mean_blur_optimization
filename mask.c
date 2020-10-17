@@ -21,7 +21,7 @@
 
 // #pragma GCC push_options
 // #pragma GCC optimize ("unroll-loops")
-// #pragma GCC optimize ("O3") // turn this on to get 3x more performance for any mask
+#pragma GCC optimize("O3") // turn this on to get 3x more performance for any mask
 
 static inline long mask0(long oldImage[N][N], long newImage[N][N], int rows, int cols)
 {
@@ -2527,7 +2527,7 @@ static inline long mask15(long oldImage[N][N], long newImage[N][N], int rows, in
 
 // ====================== Multithreaded Implementation =========================
 
-#define NUM_THREADS 7 // 7 seems optimal on i7 9700k 8c/8t; 7 additional + 1 main thread
+#define NUM_THREADS 8 // 8 seems optimal on i7 9700k 8c/8t
 
 struct params
 {
@@ -2557,7 +2557,14 @@ void *blurRows(void *params);
  * main thread will compute top row, and bottom N % NUM_THREADS + 1 rows
  * each thread will compute middle (rows - 2) / NUM_THREADS rows
  * 
- * TODO inline thread functions?
+ * The optimized implementation took:
+        Best   :         4274 usec (ratio: 0.004240)
+        Average:         5775 usec (ratio: 0.005648)
+
+ * with O3 on
+ * The optimized implementation took:
+        Best   :         2868 usec (ratio: 0.002851)
+        Average:         3026 usec (ratio: 0.002981)
  */
 static inline long mask16(long oldImage[N][N], long newImage[N][N], int rows, int cols)
 {
@@ -2582,7 +2589,7 @@ static inline long mask16(long oldImage[N][N], long newImage[N][N], int rows, in
     for (int t = 0; t < NUM_THREADS; t++)
     {
         threadsParamArr[t] = (struct params){oldImage, newImage, rows, cols, startRow, rowsPerThread};
-        pthread_create(&threadsArr[t], NULL, blurRows, (void *) &threadsParamArr[t]);
+        pthread_create(&threadsArr[t], NULL, blurRows, (void *)&threadsParamArr[t]);
         startRow += rowsPerThread;
     }
 
@@ -2633,7 +2640,7 @@ static inline long mask16(long oldImage[N][N], long newImage[N][N], int rows, in
 
     // LEFTOVER ROWS FROM N / NUM_THREADS INTEGER DIVISION ~~~~~~~~~~~~~~~~~~~
     struct params leftoverRowsParam = {oldImage, newImage, rows, cols, startRow, (rows - 2) % NUM_THREADS};
-    check += (long) blurRows((void*) &leftoverRowsParam);
+    check += (long)blurRows((void *)&leftoverRowsParam);
 
     // BOT ROW ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     j = rows - 1;
@@ -2686,14 +2693,14 @@ static inline long mask16(long oldImage[N][N], long newImage[N][N], int rows, in
 
     for (int t = 0; t < NUM_THREADS; t++)
     {
-        pthread_join(threadsArr[t], (void **) &retval);
-        check += (long) retval;
+        pthread_join(threadsArr[t], (void **)&retval);
+        check += (long)retval;
     }
 
     return check;
 }
 
-void *blurRows(void *params_v)
+inline void *blurRows(void *params_v)
 {
     struct params *params_ptr = (struct params *)params_v;
 
@@ -2754,16 +2761,15 @@ void *blurRows(void *params_v)
 
         // Produce the final result
         params_ptr->newImage[j][params_ptr->cols - 1] = pixel;
+        tempCheck += pixel;
     }
 
     // pthread_mutex_lock(&check_mlock);
     // *params_ptr->check += tempCheck + pixel;
     // pthread_mutex_unlock(&check_mlock);
-    tempCheck += pixel;
 
     return (void *)tempCheck;
 }
-
 
 // void *blurTopRow(void *params_v)
 // {
