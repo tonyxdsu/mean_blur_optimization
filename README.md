@@ -18,7 +18,7 @@ mask16() is the optimized multithreaded implemention
 ## Strategies that did not work include:
 * reduction of branch prediction miss through manual gcc compiler hints __builtin_expect(), probably because the CPU hardware branch predictor is much better at this than I am
 * reduction of cache misses with manual prefetch through gcc __builtin_prefetch(), again, probably because the CPU hardware prefetch already does this
-* manual loop unrolling to reduce the number of branch instructions, and the number of comparison instructions (ie i < N - 1?) at each interation. O3 in gcc does this however.
+* manual loop unrolling to reduce the number of branch instructions, and the number of comparison instructions (ie i < N - 1?) at each interation. O3 in gcc does this however. (mask15(); Duff's device)
 
 ---
 ## Results:
