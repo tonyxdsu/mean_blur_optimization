@@ -20,12 +20,23 @@ mask16() is the optimized multithreaded implemention
 
 ---
 ## Results:
+Output from perf stat, including cache performance and total instructions and cycles taken. These tests were done on a stripped down version of the main function that only runs the respective mask functions, excluding reading/writing to output files, etc.
+
+Hardware used: Intel i7 9700k @ 4.6 GHz boost clock. RAM @ 3200 MHz, CL16.
+
+Initial results from unoptimized mask0:
 ![mask0](benchmarks/mask0_L1.png)
+Results from best optimized single threaded mask14:
 ![mask14](benchmarks/mask14_L1.png)
 
+From above, the improvement from the base algorithm is as follows:
 
+* 99.6% reduction in total L1 cache misses.
+* 96.4% reduction in total CPU cycles.
+* 80.1% reduction in total instructions.
+* increase from 0.49 to 2.69 instructions per cycle.
 
-
+Mask16 (multithreaded) follows the same trend, albeit slightly worse cache metrics, but naturally with a lower total time.
 ---
 ## TODO:
 * another image access pattern: working down the image going through cache line size number of bytes worth of pixels at a time. This should reduce cache misses by 3 times for the entire image, I have some ideas why my implemention doesn't work even though I think it should (mask7, mask8).
