@@ -19,6 +19,14 @@ mask16() is the optimized multithreaded implemention
 * reduction of cache misses with manual prefetch through gcc __builtin_prefetch(), again, probably because the CPU hardware prefetch already does this
 
 ---
+## Results:
+![mask0](benchmarks/mask0_L1.png)
+![mask14](benchmarks/mask14_L1.png)
+
+
+
+
+---
 ## TODO:
 * another image access pattern: working down the image going through cache line size number of bytes worth of pixels at a time. This should reduce cache misses by 3 times for the entire image, I have some ideas why my implemention doesn't work even though I think it should (mask7, mask8).
 
