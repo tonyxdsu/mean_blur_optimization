@@ -1,6 +1,6 @@
 # Mean Blur Optimization
 
-This is a project to optimize an image blurring algorithm. Each subsequent mask version in mask.c attempts to improve on the previous version. The output pixel is the average of the surrounding pixels of the input image.
+This is a project to optimize an image blurring algorithm. Each subsequent mask version in mask.c attempts to improve on the previous version. Each output pixel is the average of the surrounding pixels of the input image.
 
 ---
 ## Successful strategies pursued are as follows:
