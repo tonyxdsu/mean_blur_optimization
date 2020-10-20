@@ -38,9 +38,20 @@ From above, the improvement from the base algorithm is as follows:
 
 Mask16 (multithreaded) follows the same trend, albeit slightly worse cache metrics, but naturally with a lower total time.
 
+<h5>Total time for entire algorithm (ie output from running ./timemask)</h5>
+
+| Mask version       | time (usec) | time ratio to base |
+|--------------------|-------------|--------------------|
+| 0                  | 1278281     | 1                  |
+| 14 (single thread) | 25659       | 0.016484           |
+| 16 (multithread)   | 3026        | 0.002981           |
+
+times for each other versions are recorded at the start of each function in mask.c
+
 ---
 ## TODO:
 * another image access pattern: working down the image going through cache line size number of bytes worth of pixels at a time. This should reduce cache misses by 3 times for the entire image, I have some ideas why my implemention doesn't work even though I think it should (mask7, mask8).
+* CUDA! I need more threads! Though my initial thoughts are that it's not worth it unless it's a very intensive algorith
 
 ---
 ## To run this program:
