@@ -50,8 +50,8 @@ times for each other versions are recorded at the start of each function in mask
 
 ---
 ## TODO:
-* another image access pattern: working down the image going through cache line size number of bytes worth of pixels at a time. This should reduce cache misses by 3 times for the entire image, I have some ideas why my implemention doesn't work even though I think it should (mask7, mask8).
-* CUDA! I need more threads! Though my initial thoughts are that it's not worth it unless it's a very intensive algorith
+* another image access pattern: working down the image going through cache line size number of bytes worth of pixels at a time.
+* CUDA! I need more threads! Though my initial thoughts are that it's not worth it unless it's a very computationally intensive algorithm on a large image; the benefits of all the extra threads must outweigh the cost of cudaMemcpy() from system memory to VRAM and back.
 
 ---
 ## To run this program:
