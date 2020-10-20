@@ -39,7 +39,7 @@ From above, the improvement from the base algorithm is as follows:
 
 Mask16 (multithreaded) follows the same trend, albeit slightly worse cache metrics, but naturally with a lower total time.
 
-<h4>Total time for entire algorithm (ie output from running ./timemask)</h4>
+<h3>Total time for entire algorithm (ie output from running ./timemask)</h3>
 
 | Mask version       | time (usec) | time ratio to base |
 |--------------------|-------------|--------------------|
