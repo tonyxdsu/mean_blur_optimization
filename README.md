@@ -47,7 +47,7 @@ Mask16 (multithreaded) follows the same trend, albeit slightly worse cache metri
 | 14 (single thread) | 25659       | 0.016484           |
 | 16 (multithread)   | 3026        | 0.002981           |
 
-times for each other versions are recorded at the start of each function in mask.c
+times for all other versions are recorded at the start of each function in mask.c
 
 ---
 ## TODO:
