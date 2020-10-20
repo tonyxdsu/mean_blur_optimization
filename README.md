@@ -35,7 +35,9 @@ From above, the improvement from the base algorithm is as follows:
 * 96.4% reduction in total CPU cycles.
 * 80.1% reduction in total instructions.
 * increase from 0.49 to 2.69 instructions per cycle.
+
 Mask16 (multithreaded) follows the same trend, albeit slightly worse cache metrics, but naturally with a lower total time.
+
 ---
 ## TODO:
 * another image access pattern: working down the image going through cache line size number of bytes worth of pixels at a time. This should reduce cache misses by 3 times for the entire image, I have some ideas why my implemention doesn't work even though I think it should (mask7, mask8).
