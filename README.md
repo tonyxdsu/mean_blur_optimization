@@ -1,6 +1,8 @@
 # Mean Blur Optimization
 
-This is a project to optimize an image blurring algorithm. Each subsequent mask version in mask.c attempts to improve on the previous version. Each output pixel is a weighted average of the surrounding pixels of the input image.
+This assignment 4 of our third year operating systems course at The University of British Columbia: CPSC 313 Computer Hardware and Operating Systems.
+
+This is a project to optimize an image blurring algorithm. Each subsequent mask function version in mask.c attempts to improve on the previous version. Each output pixel is a weighted average of the surrounding pixels of the input image.
 
 ---
 ## Successful strategies pursued are as follows:
