@@ -56,6 +56,7 @@ times for all other versions are recorded at the start of each function in mask.
 ## TODO:
 * another image access pattern: working down the image going through cache line size number of bytes worth of pixels at a time.
 * convert all division into a series of precalculated multiplications (a convolution/filter?)
+* vectorization of loops with, for example #pragma omp simd, might yield better performance than gcc -O3
 * CUDA! I need more threads! Though my initial thoughts are that it's not worth it unless it's a very computationally intensive algorithm on a large image; the benefits of all the extra threads must outweigh the cost of cudaMemcpy() from system memory to VRAM and back.
 
 ---
